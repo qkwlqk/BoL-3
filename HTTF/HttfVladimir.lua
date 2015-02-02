@@ -1,4 +1,4 @@
-Version = "1.222"
+Version = "1.23"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -116,10 +116,10 @@ function Variables()
   LastSkin = 0
   Recall = false
   
-  Q = {delay = 0, range = 600, speed = 1400, ready, Off = 0}
-  W = {delay = 0, radius = 350, speed = 1600, ready, Off = 0}
-  E = {delay = 0, radius = 0, range = 610, speed = 1100, ready, Off = 0, stack = 0}
-  R = {delay = 0, radius = 375, range = 625, speed = math.huge, ready, Off = 0}
+  Q = {delay = 0, range = 600, speed = 1400, ready, level = 0}
+  W = {delay = 0, radius = 350, speed = 1600, ready, level = 0}
+  E = {delay = 0, radius = 0, range = 610, speed = 1100, ready, level = 0, stack = 0}
+  R = {delay = 0, radius = 375, range = 625, speed = math.huge, ready, level = 0}
   I = {range = 600, ready}
   S = {range = 760, ready}
   Z = {range = 1000, ready}
@@ -433,13 +433,13 @@ function VladimirMenu()
   
     if VIP_USER then
     Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
-      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    --[[Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
-    Menu.Misc:addParam("SkinOpt", "Skin list : ", SCRIPT_PARAM_LIST, 7, { "Count Vladimir", "Marquis Vladimir", "Nosferatu Vladimir", "Vandal Vladimir", "Blood Lord Vladimir", "Soulstealer Vladmir", "Classic"})  
+      --[[Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
+    Menu.Misc:addParam("SkinOpt", "Skin list : ", SCRIPT_PARAM_LIST, 7, { "Count Vladimir", "Marquis Vladimir", "Nosferatu Vladimir", "Vandal Vladimir", "Blood Lord Vladimir", "Soulstealer Vladmir", "Classic"})
       Menu.Misc:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")]]
     end
-    Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, true)
-    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W (QEWQ)", "R>Q>E>W (QWEQ)"})
+    --Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, true)
+    --Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W (QEWQ)", "R>Q>E>W (QWEQ)"})
       Menu.Misc:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     if VIP_USER then
     Menu.Misc:addParam("BlockR", "Block R if hitcount = 0", SCRIPT_PARAM_ONOFF, true)
@@ -471,8 +471,8 @@ function VladimirMenu()
       
     end
     
-  Menu:addTS(TS)
-    
+  Menu:addTS(QWETS)
+	
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -559,26 +559,26 @@ function OnTick()
   
   --[[if VIP_USER and Menu.Misc.Skin then
     Skin()
-  end]]
+  end
   
   if Menu.Misc.AutoLevel then
     AutoLevel()
-  end
+  end]]
   
   if Target == nil then
-    return
+    --return
   end
   
   if Menu.KillSteal.On then
-    KillSteal()
+    --KillSteal()
   end
   
   if Menu.Combo.On then
-    Combo()
+    --Combo()
   end
   
   if Menu.Harass.On then
-    Harass()
+    --Harass()
   end
   
 end
@@ -613,6 +613,11 @@ function Check()
   
   HealthPercent = (myHero.health/myHero.maxHealth)*100
   
+  Q.level = myHero:GetSpellData(_Q).level
+  W.level = myHero:GetSpellData(_W).level
+  E.level = myHero:GetSpellData(_E).level
+  R.level = myHero:GetSpellData(_R).level
+	
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1152,18 +1157,16 @@ function AutoLevel()
 
   if Menu.Misc.ALOpt == 1 then
   
-    local QL, WL, EL, RL = player:GetSpellData(_Q).level + Q.Off, player:GetSpellData(_W).level + W.Off, player:GetSpellData(_E).level + E.Off, player:GetSpellData(_R).level + R.Off
+    if Q.level+W.level+E.level+R.level < myHero.level then
     
-    if QL + WL + EL + RL < player.level then
-    
-      local spell = { SPELL_1, SPELL_2, SPELL_3, SPELL_4, }
-      local level = { 0, 0, 0, 0 }
+      local spell = {SPELL_1, SPELL_2, SPELL_3, SPELL_4}
+      local level = {0, 0, 0, 0}
       
-      for i = 1, player.level, 1 do
-        level[AutoQEWQ[i]] = level[AutoQEWQ[i]] + 1
+      for i = 1, myHero.level do
+        level[AutoQEWQ[i]] = level[AutoQEWQ[i]]+1
       end
       
-      for i, v in ipairs({ QL, WL, EL, RL }) do
+      for i, v in ipairs({Q.level, W.level, E.level, R.level}) do
       
         if v < level[i] then
           LevelSpell(spell[i])
@@ -1175,21 +1178,19 @@ function AutoLevel()
     
   elseif Menu.Misc.ALOpt == 2 then
   
-    local QL, WL, EL, RL = player:GetSpellData(_Q).level + Q.Off, player:GetSpellData(_W).level + W.Off, player:GetSpellData(_E).level + E.Off, player:GetSpellData(_R).level + R.Off
+    if Q.level+W.level+E.level+R.level < myHero.level then
     
-    if QL + WL + EL + RL < player.level then
-    
-      local spell = { SPELL_1, SPELL_2, SPELL_3, SPELL_4, }
-      local level = { 0, 0, 0, 0 }
+      local spell = {SPELL_1, SPELL_2, SPELL_3, SPELL_4}
+      local level = {0, 0, 0, 0}
       
-      for i = 1, player.level, 1 do
-        level[AutoQWEQ[i]] = level[AutoQWEQ[i]] + 1
+      for i = 1, myHero.level do
+        level[AutoQWEQ[i]] = level[AutoQWEQ[i]]+1
       end
       
-      for i, v in ipairs({ QL, WL, EL, RL }) do
+      for i, v in ipairs({Q.level, W.level, E.level, R.level}) do
       
         if v < level[i] then
-        LevelSpell(spell[i])
+          LevelSpell(spell[i])
         end
         
       end
@@ -1605,7 +1606,7 @@ function OnProcessSpell(unit,spell)
   
 end
 
-----------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
 
 function OnSendPacket(p)
 
