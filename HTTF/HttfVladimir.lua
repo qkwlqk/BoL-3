@@ -1,4 +1,4 @@
-Version = "1.231"
+Version = "1.232"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -566,19 +566,19 @@ function OnTick()
   end]]
   
   if Target == nil then
-    --return
+    return
   end
   
   if Menu.KillSteal.On then
-    --KillSteal()
+    KillSteal()
   end
   
   if Menu.Combo.On then
-    --Combo()
+    Combo()
   end
   
   if Menu.Harass.On then
-    --Harass()
+    Harass()
   end
   
 end
