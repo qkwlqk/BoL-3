@@ -1,4 +1,4 @@
-Version = "1.23"
+Version = "1.231"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
@@ -416,7 +416,7 @@ function VladimirMenu()
       Menu.Auto:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoZ", "Auto Zhonya", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Info", "Auto Zhonya if Current Health < Max health * x%", SCRIPT_PARAM_INFO, "")
-      Menu.Auto:addParam("Z", "Default value = 20", SCRIPT_PARAM_SLICE, 20	, 0, 100, 0)
+      Menu.Auto:addParam("Z", "Default value = 20", SCRIPT_PARAM_SLICE, 20  , 0, 100, 0)
       Menu.Auto:addParam("Zmin", "Auto Zhonya Min Enemy Count", SCRIPT_PARAM_SLICE, 0, 0, 5, 0)
       if Smite ~= nil then
         Menu.Auto:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
@@ -433,14 +433,14 @@ function VladimirMenu()
   
     if VIP_USER then
     Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
-      --[[Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
+      Menu.Misc:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    --[[Menu.Misc:addParam("Skin", "Use Skin hack", SCRIPT_PARAM_ONOFF, false)
     Menu.Misc:addParam("SkinOpt", "Skin list : ", SCRIPT_PARAM_LIST, 7, { "Count Vladimir", "Marquis Vladimir", "Nosferatu Vladimir", "Vandal Vladimir", "Blood Lord Vladimir", "Soulstealer Vladmir", "Classic"})
       Menu.Misc:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")]]
     end
-    --Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, true)
-    --Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W (QEWQ)", "R>Q>E>W (QWEQ)"})
-      Menu.Misc:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
+    --[[Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, true)
+    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, { "R>Q>E>W (QEWQ)", "R>Q>E>W (QWEQ)"})
+      Menu.Misc:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")]]
     if VIP_USER then
     Menu.Misc:addParam("BlockR", "Block R if hitcount = 0", SCRIPT_PARAM_ONOFF, true)
     end
@@ -472,7 +472,7 @@ function VladimirMenu()
     end
     
   Menu:addTS(QWETS)
-	
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -617,7 +617,7 @@ function Check()
   W.level = myHero:GetSpellData(_W).level
   E.level = myHero:GetSpellData(_E).level
   R.level = myHero:GetSpellData(_R).level
-	
+  
 end
 
 ----------------------------------------------------------------------------------------------------
@@ -1014,16 +1014,16 @@ function Auto()
   local AutoZ = Menu.Auto.Z
   local AutoZmin = Menu.Auto.Zmin
   local AutoAutoS = Menu.Auto.AutoS
-	
+  
   local FleeOn = Menu.Flee.On
   
   if Z.ready and AutoAutoZ and AutoZ > HealthPercent and AutoZmin <= EnemyCount(Z.range) then
     CastZ()
   end
-	
-	if Recall then
-		return
-	end
+  
+  if Recall then
+    return
+  end
   
   for i, junglemob in pairs(JungleMobs.objects) do
   
@@ -1038,10 +1038,10 @@ function Auto()
     end
     
   end
-	
-	if Target == nil then
-	  return
-	end
+  
+  if Target == nil then
+    return
+  end
   
   if E.ready and AutoAutoE and not FleeOn and AutoE2 <= HealthPercent and ValidTarget(Target, E.range) then
     CastE2(Target, Auto)
@@ -1499,9 +1499,9 @@ end
 
 function CastS(enemy)
 
-	if Smite == nil then
-	  return
-	end
+  if Smite == nil then
+    return
+  end
   
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
