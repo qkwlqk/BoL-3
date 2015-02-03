@@ -1,5 +1,5 @@
-Version = "3.221"
-AutoUpdate = true
+local Version = "3.222"
+local AutoUpdate = true
 
 if myHero.charName ~= "Riven" then
   return
@@ -14,10 +14,10 @@ end
 
 ---------------------------------------------------------------------------------
 
-Host = "raw.github.com"
+local Host = "raw.github.com"
 
-ServerPath = "/BolHTTF/BoL/master/Server.status".."?rand="..math.random(1,10000)
-ServerData = GetWebResult(Host, ServerPath)
+local ServerPath = "/BolHTTF/BoL/master/Server.status".."?rand="..math.random(1,10000)
+local ServerData = GetWebResult(Host, ServerPath)
 
 ScriptMsg("Server check...")
 
@@ -29,14 +29,14 @@ if Server == "Off" then
   return
 end
 
-ScriptFilePath = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
+local ScriptFilePath = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 
-ScriptPath = "/BolHTTF/BoL/master/HTTF/HttfRiven.lua".."?rand="..math.random(1,10000)
-UpdateURL = "https://"..Host..ScriptPath
+local ScriptPath = "/BolHTTF/BoL/master/HTTF/HttfRiven.lua".."?rand="..math.random(1,10000)
+local UpdateURL = "https://"..Host..ScriptPath
 
-VersionPath = "/BolHTTF/BoL/master/HTTF/Version/HttfRiven.version".."?rand="..math.random(1,10000)
-VersionData = GetWebResult(Host, VersionPath)
-Versiondata = tonumber(VersionData)
+local VersionPath = "/BolHTTF/BoL/master/HTTF/Version/HttfRiven.version".."?rand="..math.random(1,10000)
+local VersionData = GetWebResult(Host, VersionPath)
+local Versiondata = tonumber(VersionData)
 
 if AutoUpdate then
 
@@ -390,9 +390,9 @@ function RivenMenu()
   Menu:addSubMenu("Misc Settings", "Misc")
     --[[if VIP_USER then
     Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
-    end]]
+    end
     Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, false)
-    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 2, {"R>Q>W>E (EQWQ)", "R>Q>W>E (QEWQ)"})
+    Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 2, {"R>Q>W>E (EQWQ)", "R>Q>W>E (QEWQ)"})]]
     Menu.Misc:addParam("STT", "Stick to Target", SCRIPT_PARAM_ONOFF, true)
       Menu.Misc:addParam("STTR", "(Dist to Target from mouse <= x)", SCRIPT_PARAM_SLICE, 350, 0, 900, 0)
       
@@ -499,9 +499,9 @@ function OnTick()
     
   end
   
-  if Menu.Misc.AutoLevel then
+  --[[if Menu.Misc.AutoLevel then
     AutoLevel()
-  end
+  end]]
   
 end
 
@@ -1086,6 +1086,47 @@ function Farm()
       CastH()
     end
     
+    if not (Q.ready or W.ready) then
+      return
+    end
+    
+    if W.ready and FarmW and CanW and WMinionDmg >= minion.health and os.clock()-LastE >= 0.25 and ValidTarget(minion, W.radius) then
+      CastW()
+    end
+    
+    if Q.ready and FarmQ and CanQ and QMinionDmg >= minion.health and ValidTarget(minion, Q.radius) then
+      CastQ(minion)
+    end
+    
+  end
+  
+  for i, minion in pairs(EnemyMinions.objects) do
+  
+    if minion == nil then
+      return
+    end
+    
+    local AddRange = GetDistance(minion.minBBox, minion)/2
+    local TrueMinionRange = TrueRange+AddRange
+    
+    if GetDistance(minion, mousePos) > TrueMinionRange then
+      return
+    end
+    
+    local AAMinionDmg = GetDmg("AA", minion)
+    local QMinionDmg = GetDmg("Q", minion)
+    local WMinionDmg = GetDmg("W", minion)
+
+    if CanTurn and ValidTarget(minion, TrueMinionRange-50) then
+      CancelPos = myHero+(Vector(minion)-myHero):normalized()*-300
+      MoveToPos(CancelPos)
+      CanTurn = false
+    elseif CanTurn and not ValidTarget(minion, TrueMinionRange-50) then
+      CancelPos = myHero+(Vector(minion)-myHero):normalized()*300
+      MoveToPos(CancelPos)
+      CanTurn = false
+    end
+    
     if not (Q.ready or W.ready or E.ready) then
       return
     end
@@ -1100,11 +1141,11 @@ function Farm()
       
     end
     
-    if W.ready and FarmW and CanW and (WMinionDmg+AAMinionDmg <= minion.health or WMinionDmg >= minion.health) and os.clock()-LastE >= 0.25 and ValidTarget(minion, W.radius) then
+    if W.ready and FarmW and CanW and WMinionDmg+AAMinionDmg <= minion.health and os.clock()-LastE >= 0.25 and ValidTarget(minion, W.radius) then
       CastW()
     end
     
-    if Q.ready and FarmQ and CanQ and (QMinionDmg+AAMinionDmg <= minion.health or QMinionDmg >= minion.health) and ValidTarget(minion, Q.radius) then
+    if Q.ready and FarmQ and CanQ and QMinionDmg+AAMinionDmg <= minion.health and ValidTarget(minion, Q.radius) then
       CastQ(minion)
     end
     
