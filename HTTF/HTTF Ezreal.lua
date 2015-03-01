@@ -1,4 +1,4 @@
-Version = "1.0"
+local Version = "1.0"
 local AutoUpdate = true
 
 if myHero.charName ~= "Ezreal" then
