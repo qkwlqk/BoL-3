@@ -7,6 +7,10 @@ end
 
 require 'HPrediction'
 
+function ScriptMsg(msg)
+  print("<font color=\"#00fa9a\"><b>HTTF Riven:</b></font> <font color=\"#FFFFFF\">"..msg.."</font>")
+end
+
 ---------------------------------------------------------------------------------
 
 local Host = "raw.github.com"
