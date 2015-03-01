@@ -34,14 +34,13 @@ local ScriptPath = "/BolHTTF/BoL/master/HTTF/HTTF Ezreal.lua".."?rand="..math.ra
 local UpdateURL = "https://"..Host..ScriptPath
 
 local VersionPath = "/BolHTTF/BoL/master/HTTF/Version/HTTF Ezreal.version".."?rand="..math.random(1,10000)
-local VersionData = GetWebResult(Host, VersionPath)
-local Versiondata = tonumber(VersionData)
+local VersionData = tonumber(GetWebResult(Host, VersionPath))
 
 if AutoUpdate then
 
   if VersionData then
   
-    ServerVersion = type(Versiondata) == "number" and Versiondata or nil
+    ServerVersion = type(VersionData) == "number" and VersionData or nil
     
     if ServerVersion then
     
