@@ -1,4 +1,4 @@
-local Version = "1.01"
+local Version = "1.011"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -449,11 +449,11 @@ function Combo()
     local ComboE = Menu.Combo.E
     local ComboE2 = Menu.Combo.E2
     
-    if W.ready and ComboW and ComboW2 <= ManaPercent() and ValidTarget(ETarget, TrueRange) then
+    if W.ready and ComboW and ComboW2 <= ManaPercent() and ValidTarget(ETarget, TrueRange+unitAddRange(ETarget)) then
       CastW()
     end
     
-    if E.ready and ComboE and ComboE2 <= ManaPercent() and ValidTarget(ETarget, TrueRange) then
+    if E.ready and ComboE and ComboE2 <= ManaPercent() and ValidTarget(ETarget, TrueRange+unitAddRange(ETarget)) then
       CastE()
     end
     
@@ -556,7 +556,7 @@ function JFarm()
         
       end
       
-      if LargeJunglemob ~= nil and ValidTarget(LargeJunglemob, TrueRange) then
+      if LargeJunglemob ~= nil and ValidTarget(LargeJunglemob, TrueRange+unitAddRange(LargeJunglemob)) then
         CastW()
         return
       end
@@ -569,7 +569,7 @@ function JFarm()
         return
       end
       
-      if ValidTarget(junglemob, TrueRange) then
+      if ValidTarget(junglemob, TrueRange+unitAddRange(junglemob)) then
         CastW()
       end
       
@@ -598,7 +598,7 @@ function JFarm()
         
       end
       
-      if LargeJunglemob ~= nil and ValidTarget(LargeJunglemob, TrueRange) then
+      if LargeJunglemob ~= nil and ValidTarget(LargeJunglemob, TrueRange+unitAddRange(LargeJunglemob)) then
         CastE()
         return
       end
@@ -611,7 +611,7 @@ function JFarm()
         return
       end
       
-      if ValidTarget(junglemob, TrueRange) then
+      if ValidTarget(junglemob, TrueRange+unitAddRange(junglemob)) then
         CastE()
       end
       
@@ -641,7 +641,7 @@ function Harass()
     local HarassW = Menu.Harass.W2
     local HarassW2 = Menu.Harass.W2
     
-    if W.ready and HarassW and HarassW2 <= ManaPercent() and ValidTarget(ETarget, TrueRange) then
+    if W.ready and HarassW and HarassW2 <= ManaPercent() and ValidTarget(ETarget, TrueRange+unitAddRange(ETarget)) then
       CastW()
     end
     
@@ -652,7 +652,7 @@ function Harass()
     local HarassE = Menu.Harass.E
     local HarassE2 = Menu.Harass.E2
     
-    if E.ready and HarassE and HarassE2 <= ManaPercent() and ValidTarget(ETarget, TrueRange) then
+    if E.ready and HarassE and HarassE2 <= ManaPercent() and ValidTarget(ETarget, TrueRange+unitAddRange(ETarget)) then
       CastE()
     end
     
@@ -831,6 +831,12 @@ end
 
 function Flee()
   MoveToMouse()
+end
+
+---------------------------------------------------------------------------------
+
+function unitAddRange(unit)
+  return GetDistance(unit.minBBox, unit)/2
 end
 
 ---------------------------------------------------------------------------------
