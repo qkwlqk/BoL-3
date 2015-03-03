@@ -1,4 +1,4 @@
-local Version = "1.003"
+local Version = "1.01"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -94,8 +94,8 @@ function Variables()
   R = {ready}
   I = {range = 600, ready}
   S = {range = 760, ready}
-	
-	Spell_Q.collisionH['Blitzcrank'] = false
+  
+  Spell_Q.collisionH['Blitzcrank'] = false
   
   AddRange = GetDistance(myHero.minBBox)/2
   TrueRange = myHero.range+AddRange
@@ -194,7 +194,8 @@ function Variables()
     }
   end
   
-  QTS = TargetSelector(TARGET_NEAR_MOUSE, QTargetRange, DAMAGE_PHYSICAL, false)
+  QTS = TargetSelector(TARGET_NEAR_MOUSE, QTargetRange, DAMAGE_MAGIC, false)
+  ETS = TargetSelector(TARGET_CLOSEST, TrueRange+100, DAMAGE_PHYSICAL, false)
   STS = TargetSelector(TARGET_LOW_HP, S.range)
   
   EnemyHeroes = GetEnemyHeroes()
@@ -218,6 +219,14 @@ function BlitzcrankMenu()
     Menu.Combo:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
     Menu.Combo:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Q2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
+    Menu.Combo:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
+    Menu.Combo:addParam("W2", "Default value = 40", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
+      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+    Menu.Combo:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
+    Menu.Combo:addParam("E2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
     
   Menu:addSubMenu("Clear Settings", "Clear")
   
@@ -227,13 +236,29 @@ function BlitzcrankMenu()
       Menu.Clear.JFarm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.JFarm:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("Q2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+        Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Clear.JFarm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
+      Menu.Clear.JFarm:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
+      Menu.Clear.JFarm:addParam("W2", "Default value = 25", SCRIPT_PARAM_SLICE, 25, 0, 100, 0)
+        Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+      Menu.Clear.JFarm:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
+      Menu.Clear.JFarm:addParam("E2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
       
   Menu:addSubMenu("Harass Settings", "Harass")
     Menu.Harass:addParam("On", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
     Menu.Harass:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("Q2", "Default value = 25", SCRIPT_PARAM_SLICE, 25, 0, 100, 0)
+    Menu.Harass:addParam("Q2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, false)
+    Menu.Harass:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
+    Menu.Harass:addParam("W2", "Default value = 60", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
+      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+    Menu.Harass:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
+    Menu.Harass:addParam("E2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
     
   Menu:addSubMenu("LastHit Settings", "LastHit")
     Menu.LastHit:addParam("On", "LastHit", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
@@ -393,9 +418,11 @@ end
 function Targets()
 
   QTS:update()
+  ETS:update()
   STS:update()
   
   QTarget = QTS.target
+  ETarget = ETS.target
   STarget = STS.target
   
 end
@@ -411,6 +438,23 @@ function Combo()
     
     if Q.ready and ComboQ and ComboQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+100) then
       CastQ(QTarget)
+    end
+    
+  end
+
+  if ETarget ~= nil then
+  
+    local ComboW = Menu.Combo.W
+    local ComboW2 = Menu.Combo.W2
+    local ComboE = Menu.Combo.E
+    local ComboE2 = Menu.Combo.E2
+    
+    if W.ready and ComboW and ComboW2 <= ManaPercent() and ValidTarget(ETarget, TrueRange) then
+      CastW()
+    end
+    
+    if E.ready and ComboE and ComboE2 <= ManaPercent() and ValidTarget(ETarget, TrueRange) then
+      CastE()
     end
     
   end
@@ -491,6 +535,90 @@ function JFarm()
     
   end
   
+  local JFarmW = Menu.Clear.JFarm.W
+  local JFarmW2 = Menu.Clear.JFarm.W2
+  
+  if W.ready and JFarmW and JFarmW2 <= ManaPercent() then
+  
+    for i, junglemob in pairs(JungleMobs.objects) do
+    
+      if junglemob == nil then
+        return
+      end
+      
+      local LargeJunglemob = nil
+      
+      for j = 1, #FocusJungleNames do
+        if junglemob.name == FocusJungleNames[j] then
+          LargeJunglemob = junglemob
+          break
+        end
+        
+      end
+      
+      if LargeJunglemob ~= nil and ValidTarget(LargeJunglemob, TrueRange) then
+        CastW()
+        return
+      end
+      
+    end
+    
+    for i, junglemob in pairs(JungleMobs.objects) do
+    
+      if junglemob == nil then
+        return
+      end
+      
+      if ValidTarget(junglemob, TrueRange) then
+        CastW()
+      end
+      
+    end
+    
+  end
+  
+  local JFarmE = Menu.Clear.JFarm.E
+  local JFarmE2 = Menu.Clear.JFarm.E2
+  
+  if E.ready and JFarmE and JFarmE2 <= ManaPercent() then
+  
+    for i, junglemob in pairs(JungleMobs.objects) do
+    
+      if junglemob == nil then
+        return
+      end
+      
+      local LargeJunglemob = nil
+      
+      for j = 1, #FocusJungleNames do
+        if junglemob.name == FocusJungleNames[j] then
+          LargeJunglemob = junglemob
+          break
+        end
+        
+      end
+      
+      if LargeJunglemob ~= nil and ValidTarget(LargeJunglemob, TrueRange) then
+        CastE()
+        return
+      end
+      
+    end
+    
+    for i, junglemob in pairs(JungleMobs.objects) do
+    
+      if junglemob == nil then
+        return
+      end
+      
+      if ValidTarget(junglemob, TrueRange) then
+        CastE()
+      end
+      
+    end
+    
+  end
+  
 end
 
 ---------------------------------------------------------------------------------
@@ -504,6 +632,28 @@ function Harass()
     
     if Q.ready and HarassQ and HarassQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+100) then
       CastQ(QTarget)
+    end
+    
+  end
+  
+  if WTarget ~= nil then
+  
+    local HarassW = Menu.Harass.W2
+    local HarassW2 = Menu.Harass.W2
+    
+    if W.ready and HarassW and HarassW2 <= ManaPercent() and ValidTarget(ETarget, TrueRange) then
+      CastW()
+    end
+    
+  end
+  
+  if ETarget ~= nil then
+  
+    local HarassE = Menu.Harass.E
+    local HarassE2 = Menu.Harass.E2
+    
+    if E.ready and HarassE and HarassE2 <= ManaPercent() and ValidTarget(ETarget, TrueRange) then
+      CastE()
     end
     
   end
@@ -792,6 +942,30 @@ end
 
 ---------------------------------------------------------------------------------
 
+function CastW()
+
+  if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = _W}):send()
+  else
+    CastSpell(_W)
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function CastE()
+
+  if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = _E}):send()
+  else
+    CastSpell(_E)
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
 function CastI(enemy)
 
   if VIP_USER and Menu.Misc.UsePacket then
@@ -885,7 +1059,7 @@ function OnDraw()
     end
     
     QPos = nil
-		QHitChance = nil
+    QHitChance = nil
   end
   
   if Menu.Draw.AA then
