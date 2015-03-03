@@ -1,4 +1,4 @@
-local Version = "1.001"
+local Version = "1.002"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -208,7 +208,7 @@ function BlitzcrankMenu()
   Menu = scriptConfig("HTTF Blitzcrank", "HTTF Blitzcrank")
   
   Menu:addSubMenu("HitChance Settings", "HitChance")
-    Menu.HitChance:addParam("Q", "Q HitChacne (Default value = 1.3)", SCRIPT_PARAM_SLICE, 1.3, 1, 3, 1)
+    Menu.HitChance:addParam("Q", "Q HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 1.2, 1, 3, 1)
     
   Menu:addSubMenu("Combo Settings", "Combo")
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
