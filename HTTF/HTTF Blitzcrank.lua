@@ -1,4 +1,4 @@
-local Version = "1.0"
+local Version = "1.001"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -192,7 +192,7 @@ function Variables()
     }
   end
   
-  QTS = TargetSelector(TARGET_LESS_CAST, QTargetRange, DAMAGE_PHYSICAL, false)
+  QTS = TargetSelector(TARGET_NEAR_MOUSE, QTargetRange, DAMAGE_PHYSICAL, false)
   STS = TargetSelector(TARGET_LOW_HP, S.range)
   
   EnemyHeroes = GetEnemyHeroes()
@@ -303,6 +303,8 @@ function BlitzcrankMenu()
     end
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("Path", "Draw Move Path", SCRIPT_PARAM_ONOFF, false)
+      Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Draw:addParam("Hitchance", "Draw Hitchance", SCRIPT_PARAM_ONOFF, true)
     
 end
 
