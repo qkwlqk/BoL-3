@@ -1,4 +1,4 @@
-local Version = "1.002"
+local Version = "1.003"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -94,6 +94,8 @@ function Variables()
   R = {ready}
   I = {range = 600, ready}
   S = {range = 760, ready}
+	
+	Spell_Q.collisionH['Blitzcrank'] = false
   
   AddRange = GetDistance(myHero.minBBox)/2
   TrueRange = myHero.range+AddRange
@@ -494,7 +496,7 @@ end
 ---------------------------------------------------------------------------------
 
 function Harass()
-  
+
   if QTarget ~= nil then
   
     local HarassQ = Menu.Harass.Q
@@ -883,6 +885,7 @@ function OnDraw()
     end
     
     QPos = nil
+		QHitChance = nil
   end
   
   if Menu.Draw.AA then
