@@ -1,4 +1,4 @@
-local Version = "1.0"
+local Version = "1.001"
 local AutoUpdate = true
 
 if myHero.charName ~= "Corki" then
@@ -341,6 +341,8 @@ function CorkiMenu()
     end
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("Path", "Draw Move Path", SCRIPT_PARAM_ONOFF, false)
+      Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Draw:addParam("Hitchance", "Draw Hitchance", SCRIPT_PARAM_ONOFF, true)
     
 end
 
@@ -1196,22 +1198,40 @@ function OnDraw()
     DrawCircle(RTarget.x, RTarget.y, RTarget.z, R.width/2, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
-  if Menu.Draw.PP.Q and QPos ~= nil then
+  if QHitChance ~= nil then
   
-    if QHitChance == 0 then
-      color = ARGB(0xFF, 0xFF, 0x00, 0x00)
-    elseif QHitChance == 1 then
-      color = ARGB(0xFF, 0xFF, 0xE4, 0x00)
-    elseif QHitChance == 2 then
-      color = ARGB(0xFF, 0x1D, 0xDB, 0x16)
+    if QHitChance <= 0 then
+      Qcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
     elseif QHitChance == 3 then
-      color = ARGB(0xFF, 0x00, 0x54, 0xFF)
+      Qcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
+    elseif QHitChance >= 2 then
+      Qcolor = ARGB(0xFF, 0x1D, 0xDB, 0x16)
+    elseif QHitChance >= 1 then
+      Qcolor = ARGB(0xFF, 0xFF, 0xE4, 0x00)
+    end
+  
+  end
+  
+  if RHitChance ~= nil then
+  
+    if RHitChance == 0 then
+      Rcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
+    elseif RHitChance == 3 then
+      Rcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
+    elseif RHitChance >= 2 then
+      Rcolor = ARGB(0xFF, 0x1D, 0xDB, 0x16)
+    elseif RHitChance >= 1 then
+      Rcolor = ARGB(0xFF, 0xFF, 0xE4, 0x00)
     end
     
-    DrawCircle(QPos.x, QPos.y, QPos.z, Q.radius, color)
+  end
+  
+  if Menu.Draw.PP.Q and QPos ~= nil then
+  
+    DrawCircle(QPos.x, QPos.y, QPos.z, Q.radius, Qcolor)
     
     if Menu.Draw.PP.Line then
-      DrawLine3D(myHero.x, myHero.y, myHero.z, QPos.x, QPos.y, QPos.z, 2, color)
+      DrawLine3D(myHero.x, myHero.y, myHero.z, QPos.x, QPos.y, QPos.z, 2, Qcolor)
     end
     
     QPos = nil
@@ -1219,23 +1239,27 @@ function OnDraw()
   
   if Menu.Draw.PP.R and RPos ~= nil then
   
-    if RHitChance <= 0 then
-      color = ARGB(0xFF, 0xFF, 0x00, 0x00)
-    elseif RHitChance == 1 then
-      color = ARGB(0xFF, 0xFF, 0xE4, 0x00)
-    elseif RHitChance == 2 then
-      color = ARGB(0xFF, 0x1D, 0xDB, 0x16)
-    elseif RHitChance == 3 then
-      color = ARGB(0xFF, 0x00, 0x54, 0xFF)
-    end
-    
-    DrawCircle(RPos.x, RPos.y, RPos.z, R.width/2, color)
+    DrawCircle(RPos.x, RPos.y, RPos.z, R.width/2, Rcolor)
     
     if Menu.Draw.PP.Line then
-      DrawLine3D(myHero.x, myHero.y, myHero.z, RPos.x, RPos.y, RPos.z, 2, color)
+      DrawLine3D(myHero.x, myHero.y, myHero.z, RPos.x, RPos.y, RPos.z, 2, Rcolor)
     end
     
     RPos = nil
+  end
+  
+  if Menu.Draw.Hitchance then
+  
+    if QHitChance ~= nil then
+      DrawText("Q HitChance: "..QHitChance, 20, 1250, 550, Qcolor)
+      QHitChance = nil
+    end
+    
+    if RHitChance ~= nil then
+      DrawText("R HitChance: "..RHitChance, 20, 1250, 600, Rcolor)
+      RHitChance = nil
+    end
+    
   end
   
   if Menu.Draw.AA then
