@@ -88,14 +88,6 @@ function Variables()
     Smite = SUMMONER_2
   end
   
-  Spell_Q.collisionM['Blitzcrank'] = true
-  Spell_Q.collisionH['Blitzcrank'] = true
-  Spell_Q.delay['Blitzcrank'] = .25
-  Spell_Q.range['Blitzcrank'] = 1050
-  Spell_Q.speed['Blitzcrank'] = 1800
-  Spell_Q.type['Blitzcrank'] = "DelayLine"
-  Spell_Q.width['Blitzcrank'] = 140
-  
   Q = {range = 1050, width = 140, ready}
   W = {ready}
   E = {ready}
