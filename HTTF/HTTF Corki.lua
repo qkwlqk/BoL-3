@@ -1,4 +1,4 @@
-local Version = "1.001"
+local Version = "1.002"
 local AutoUpdate = true
 
 if myHero.charName ~= "Corki" then
@@ -190,6 +190,13 @@ function Variables()
     "TT_NGolem25.1.1",
     "TT_NWolf26.1.2",
     "TT_NWolf26.1.3"
+    }
+  else
+    FocusJungleNames =
+    {
+    }   
+    JungleMobNames =
+    {
     }
   end
   
