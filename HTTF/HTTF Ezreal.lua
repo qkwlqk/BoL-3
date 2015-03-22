@@ -1,4 +1,4 @@
-local Version = "1.02"
+local Version = "1.1"
 local AutoUpdate = true
 
 if myHero.charName ~= "Ezreal" then
@@ -69,12 +69,18 @@ function OnLoad()
 
   Variables()
   EzrealMenu()
+  DelayAction(Orbwalk, 1)
   
 end
+
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
 
 function Variables()
 
   HPred = HPrediction()
+  
+  RebornLoaded, RevampedLoaded, MMALoaded, SxOrbLoaded, SOWLoaded = false, false, false, false, false
   
   if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
     Ignite = SUMMONER_1
@@ -91,7 +97,7 @@ function Variables()
   Q = {range = 1200, width = 160, ready}
   W = {range = 1050, width = 160, ready}
   E = {range = 475, ready}
-  R = {range = 2000, width = 320, ready}
+  R = {range = 1500, width = 320, ready}
   I = {range = 600, ready}
   S = {range = 760, ready}
   
@@ -203,8 +209,8 @@ function Variables()
     }
   end
   
-  QTS = TargetSelector(TARGET_NEAR_MOUSE, QTargetRange, DAMAGE_PHYSICAL, false)
-  WTS = TargetSelector(TARGET_NEAR_MOUSE, WTargetRange, DAMAGE_MAGIC, false)
+  QTS = TargetSelector(TARGET_LESS_CAST, QTargetRange, DAMAGE_PHYSICAL, false)
+  WTS = TargetSelector(TARGET_LESS_CAST, WTargetRange, DAMAGE_MAGIC, false)
   RTS = TargetSelector(TARGET_LESS_CAST, RTargetRange, DAMAGE_MAGIC, false)
   STS = TargetSelector(TARGET_LOW_HP, S.range)
   
@@ -221,14 +227,14 @@ function EzrealMenu()
   Menu = scriptConfig("HTTF Ezreal", "HTTF Ezreal")
   
   Menu:addSubMenu("HitChance Settings", "HitChance")
-	
+  
     Menu.HitChance:addSubMenu("Combo", "Combo")
-      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.1)", SCRIPT_PARAM_SLICE, 1.1, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.02)", SCRIPT_PARAM_SLICE, 1.02, 1, 3, 2)
       Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 1.2, 1, 3, 2)
-      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 1)", SCRIPT_PARAM_SLICE, 1, 1, 3, 2)
-	    
+      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 0.01)", SCRIPT_PARAM_SLICE, .01, .01, 3, 2)
+      
     Menu.HitChance:addSubMenu("Harass", "Harass")
-      Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 1.2, 1, 3, 2)
+      Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 1.4)", SCRIPT_PARAM_SLICE, 1.4, 1, 3, 2)
       Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 1.4)", SCRIPT_PARAM_SLICE, 1.4, 1, 3, 2)
       
   Menu:addSubMenu("Combo Settings", "Combo")
@@ -254,7 +260,7 @@ function EzrealMenu()
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("Q2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
+      Menu.Clear.Farm:addParam("Q2", "Default value = 40", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
         
     Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
       Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
@@ -279,7 +285,7 @@ function EzrealMenu()
       Menu.LastHit:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.LastHit:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, false)
     Menu.LastHit:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.LastHit:addParam("Q2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
+    Menu.LastHit:addParam("Q2", "Default value = 75", SCRIPT_PARAM_SLICE, 75, 0, 100, 0)
     
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
@@ -290,7 +296,7 @@ function EzrealMenu()
     Menu.JSteal:addParam("S", "Use Smite", SCRIPT_PARAM_ONOFF, true)
       Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("Always", "Always Use Auto Q and Smite\n(Baron & Dragon)", SCRIPT_PARAM_ONOFF, true)
-		else
+    else
       Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("Always", "Always Use Auto Q\n(Baron & Dragon)", SCRIPT_PARAM_ONOFF, true)
     end
@@ -362,6 +368,56 @@ function EzrealMenu()
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("Hitchance", "Draw Hitchance", SCRIPT_PARAM_ONOFF, true)
     
+end
+
+---------------------------------------------------------------------------------
+
+function Orbwalk()
+
+  if _G.AutoCarry then
+  
+    if _G.AutoCarry.Helper then
+      RebornLoaded = true
+      ScriptMsg("Found SAC: Reborn.")
+    else
+      RevampedLoaded = true
+      ScriptMsg("Found SAC: Revamped.")
+    end
+    
+  elseif _G.Reborn_Loaded then
+    DelayAction(Orbwalk, 1)
+  elseif _G.MMA_Loaded then
+    MMALoaded = true
+    ScriptMsg("Found MMA.")
+  elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
+    require 'SxOrbWalk'
+    
+    SxOrbMenu = scriptConfig("SxOrb Settings", "SxOrb")
+    
+    SxOrb = SxOrbWalk()
+    SxOrb:LoadToMenu(SxOrbMenu)
+    
+    SxOrbLoaded = true
+    ScriptMsg("Found SxOrb.")
+  elseif FileExist(LIB_PATH .. "SOW.lua") then
+  
+    require 'SOW'
+    require 'VPrediction'
+    
+    VP = VPrediction()
+    SOWVP = SOW(VP)
+    
+    Menu:addSubMenu("Orbwalk Settings (SOW)", "Orbwalk")
+      Menu.Orbwalk:addParam("Info", "SOW settings", SCRIPT_PARAM_INFO, "")
+      Menu.Orbwalk:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      SOWVP:LoadToMenu(Menu.Orbwalk)
+      
+    SOWLoaded = true
+    ScriptMsg("Found SOW.")
+  else
+    ScriptMsg("Orbwalk not founded.")
+  end
+  
 end
 
 ---------------------------------------------------------------------------------
@@ -481,7 +537,7 @@ function Combo()
         CastQ(QTarget, "Combo")
       end
       
-      if QHitChance == 0 then
+      if QHitChance ~= nil and QHitChance >= 0 and QHitChance < 1 then
       
         for i, enemy in ipairs(EnemyHeroes) do
         
@@ -515,9 +571,8 @@ function Combo()
   if RTarget ~= nil then
   
     local ComboR = Menu.Combo.R
-    local RTargetDmg = GetDmg("R", RTarget)
     
-    if R.ready and ComboR and .8*RTargetDmg >= RTarget.health and ValidTarget(RTarget, R.range+100) then
+    if R.ready and ComboR and ValidTarget(RTarget, R.range+100) then
       CastR(RTarget, "Combo")
     end
     
@@ -537,7 +592,7 @@ function Combo()
         CastS(STarget)
       end
       
-      if ComboBRK >= HealthPercent(myHero) then
+      if ComboBRK >= HealthPercent() then
       
         if Items["BC"].ready and ValidTarget(STarget, Items["BC"].range) then
           CastBC(STarget)
@@ -658,7 +713,7 @@ function Harass()
         CastQ(QTarget, "Harass")
       end
       
-      if QHitChance == 0 then
+      if QHitChance ~= nil and QHitChance >= 0 and QHitChance < 1 then
       
         for i, enemy in ipairs(EnemyHeroes) do
         
@@ -906,8 +961,8 @@ end
 
 ---------------------------------------------------------------------------------
 
-function HealthPercent(unit)
-  return (unit.health/unit.maxHealth)*100
+function HealthPercent()
+  return (myHero.health/myHero.maxHealth)*100
 end
 
 function ManaPercent()
@@ -1017,7 +1072,7 @@ function CastQ(unit, mode)
 
   QPos, QHitChance = HPred:GetPredict("Q", unit, myHero)
   
-	if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1.1 then
+  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1.02 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
@@ -1035,7 +1090,7 @@ function CastW(unit, mode)
 
   WPos, WHitChance = HPred:GetPredict("W", unit, myHero)
   
-  if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 1.2 then
+  if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 1.02 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _W, toX = WPos.x, toY = WPos.z, fromX = WPos.x, fromY = WPos.z}):send()
@@ -1065,7 +1120,7 @@ function CastR(unit, mode)
 
   RPos, RHitChance = HPred:GetPredict("R", unit, myHero)
   
-  if mode == "Combo" and RHitChance >= Menu.HitChance.Combo.R or mode == nil and RHitChance >= 1 then
+  if mode == "Combo" and RHitChance >= Menu.HitChance.Combo.R or mode == nil and RHitChance >= .01 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _R, toX = RPos.x, toY = RPos.z, fromX = RPos.x, fromY = RPos.z}):send()
@@ -1162,7 +1217,9 @@ function OnDraw()
   
   if QHitChance ~= nil then
   
-    if QHitChance <= 0 then
+    if QHitChance == -1 then
+      Qcolor = ARGB(0xFF, 0x00, 0x00, 0x00)
+    elseif QHitChance < 1 then
       Qcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
     elseif QHitChance == 3 then
       Qcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
@@ -1176,7 +1233,7 @@ function OnDraw()
   
   if WHitChance ~= nil then
   
-    if WHitChance == 0 then
+    if WHitChance < 1 then
       Wcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
     elseif WHitChance == 3 then
       Wcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
@@ -1190,7 +1247,7 @@ function OnDraw()
   
   if RHitChance ~= nil then
   
-    if RHitChance == 0 then
+    if RHitChance < 1 then
       Rcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
     elseif RHitChance == 3 then
       Rcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
@@ -1241,7 +1298,7 @@ function OnDraw()
       DrawText("Q HitChance: "..QHitChance, 20, 1250, 550, Qcolor)
       QHitChance = nil
     end
-  
+    
     if WHitChance ~= nil then
       DrawText("W HitChance: "..WHitChance, 20, 1250, 600, Wcolor)
       WHitChance = nil
