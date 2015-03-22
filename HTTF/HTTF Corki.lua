@@ -1,4 +1,4 @@
-local Version = "1.002"
+local Version = "1.1"
 local AutoUpdate = true
 
 if myHero.charName ~= "Corki" then
@@ -88,7 +88,7 @@ function Variables()
     Smite = SUMMONER_2
   end
   
-  Q = {range = 825, radius = 250, ready}
+  Q = {range = 825, radius = 270, ready}
   W = {ready}
   E = {ready}
   R = {range = 1300, width = 80, ready}
@@ -200,7 +200,7 @@ function Variables()
     }
   end
   
-  QTS = TargetSelector(TARGET_LESS_CAST, QTargetRange, DAMAGE_PHYSICAL, false)
+  QTS = TargetSelector(TARGET_LESS_CAST, QTargetRange, DAMAGE_MAGIC, false)
   RTS = TargetSelector(TARGET_LESS_CAST, RTargetRange, DAMAGE_MAGIC, false)
   STS = TargetSelector(TARGET_LOW_HP, S.range)
   
@@ -217,9 +217,15 @@ function CorkiMenu()
   Menu = scriptConfig("HTTF Corki", "HTTF Corki")
   
   Menu:addSubMenu("HitChance Settings", "HitChance")
-    Menu.HitChance:addParam("Q", "Q HitChacne (Default value = 1.1)", SCRIPT_PARAM_SLICE, 1.1, 1, 3, 1)
-    Menu.HitChance:addParam("R", "R HitChacne (Default value = 1.1)", SCRIPT_PARAM_SLICE, 1.1, 1, 3, 1)
-    
+  
+    Menu.HitChance:addSubMenu("Combo", "Combo")
+      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.02)", SCRIPT_PARAM_SLICE, 1.02, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 1.02)", SCRIPT_PARAM_SLICE, 1.02, 1, 3, 2)
+      
+    Menu.HitChance:addSubMenu("Harass", "Harass")
+      Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 1.4)", SCRIPT_PARAM_SLICE, 1.4, 1, 3, 2)
+      Menu.HitChance.Harass:addParam("R", "R HitChacne (Default value = 1.4)", SCRIPT_PARAM_SLICE, 1.4, 1, 3, 2)
+      
   Menu:addSubMenu("Combo Settings", "Combo")
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
@@ -275,9 +281,9 @@ function CorkiMenu()
     Menu.LastHit:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, false)
     Menu.LastHit:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
     Menu.LastHit:addParam("Q2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
-    Menu.LastHit:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, false)
+    Menu.LastHit:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, true)
     Menu.LastHit:addParam("Info", "Use R if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.LastHit:addParam("R2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
+    Menu.LastHit:addParam("R2", "Default value = 90", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
     
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
@@ -459,7 +465,7 @@ function Combo()
     local ComboQ2 = Menu.Combo.Q2
     
     if Q.ready and ComboQ and ComboQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+Q.radius+100) then
-      CastQ(QTarget)
+      CastQ(QTarget, "Combo")
     end
     
   end
@@ -472,10 +478,10 @@ function Combo()
     if R.ready and ComboR and ComboR2 <= ManaPercent() then
     
       if ValidTarget(RTarget, R.range+100) then
-        CastR(RTarget)
+        CastR(RTarget, "Combo")
       end
       
-      if RHitChance == 0 then
+      if RHitChance ~= nil and RHitChance >= 0 and RHitChance < 1 then
       
         for i, enemy in ipairs(EnemyHeroes) do
         
@@ -484,7 +490,7 @@ function Combo()
           end
           
           if ValidTarget(enemy, R.range+100) then
-            CastR(enemy)
+            CastR(enemy, "Combo")
           end
           
         end
@@ -701,7 +707,7 @@ function Harass()
     local HarassQ2 = Menu.Harass.Q2
     
     if Q.ready and HarassQ and HarassQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+Q.radius+100) then
-      CastQ(QTarget)
+      CastQ(QTarget, "Harass")
     end
     
   end
@@ -714,10 +720,10 @@ function Harass()
     if R.ready and HarassR and HarassR2 <= ManaPercent() then
     
       if ValidTarget(RTarget, R.range+100) then
-        CastR(RTarget)
+        CastR(RTarget, "Harass")
       end
       
-      if RHitChance == 0 then
+      if RHitChance ~= nil and RHitChance >= 0 and RHitChance < 1 then
       
         for i, enemy in ipairs(EnemyHeroes) do
         
@@ -726,7 +732,7 @@ function Harass()
           end
           
           if ValidTarget(enemy, R.range+100) then
-            CastR(enemy)
+            CastR(enemy, "Harass")
           end
           
         end
@@ -1092,11 +1098,11 @@ end
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function CastQ(unit)
+function CastQ(unit, mode)
 
   QPos, QHitChance = HPred:GetPredict("Q", unit, myHero)
   
-  if QHitChance >= Menu.HitChance.Q then
+  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1.02 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
@@ -1114,7 +1120,7 @@ function CastR(unit)
 
   RPos, RHitChance = HPred:GetPredict("R", unit, myHero)
   
-  if RHitChance >= Menu.HitChance.R then
+  if mode == "Combo" and RHitChance >= Menu.HitChance.Combo.R or mode == nil and RHitChance >= 1.02 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _R, toX = RPos.x, toY = RPos.z, fromX = RPos.x, fromY = RPos.z}):send()
@@ -1207,7 +1213,7 @@ function OnDraw()
   
   if QHitChance ~= nil then
   
-    if QHitChance <= 0 then
+    if QHitChance < 1 then
       Qcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
     elseif QHitChance == 3 then
       Qcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
@@ -1221,7 +1227,9 @@ function OnDraw()
   
   if RHitChance ~= nil then
   
-    if RHitChance == 0 then
+    if RHitChance == -1 then
+      Rcolor = ARGB(0xFF, 0x00, 0x00, 0x00)
+    elseif RHitChance < 1 then
       Rcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
     elseif RHitChance == 3 then
       Rcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
