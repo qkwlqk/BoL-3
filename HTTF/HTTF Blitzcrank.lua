@@ -1,4 +1,4 @@
-local Version = "1.012"
+local Version = "1.1"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -218,8 +218,13 @@ function BlitzcrankMenu()
   Menu = scriptConfig("HTTF Blitzcrank", "HTTF Blitzcrank")
   
   Menu:addSubMenu("HitChance Settings", "HitChance")
-    Menu.HitChance:addParam("Q", "Q HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 1.2, 1, 3, 1)
-    
+  
+    Menu.HitChance:addSubMenu("Combo", "Combo")
+      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.25)", SCRIPT_PARAM_SLICE, 1.25, 1, 3, 2)
+      
+    Menu.HitChance:addSubMenu("Harass", "Harass")
+      Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
+      
   Menu:addSubMenu("Combo Settings", "Combo")
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
@@ -233,7 +238,7 @@ function BlitzcrankMenu()
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     Menu.Combo:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("E2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
+    Menu.Combo:addParam("E2", "Default value = 25", SCRIPT_PARAM_SLICE, 25, 0, 100, 0)
     
   Menu:addSubMenu("Clear Settings", "Clear")
   
@@ -265,7 +270,7 @@ function BlitzcrankMenu()
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     Menu.Harass:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("E2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
+    Menu.Harass:addParam("E2", "Default value = 25", SCRIPT_PARAM_SLICE, 25, 0, 100, 0)
     
   Menu:addSubMenu("LastHit Settings", "LastHit")
     Menu.LastHit:addParam("On", "LastHit", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
@@ -444,7 +449,7 @@ function Combo()
     local ComboQ2 = Menu.Combo.Q2
     
     if Q.ready and ComboQ and ComboQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+100) then
-      CastQ(QTarget)
+      CastQ(QTarget, "Combo")
     end
     
   end
@@ -638,7 +643,7 @@ function Harass()
     local HarassQ2 = Menu.Harass.Q2
     
     if Q.ready and HarassQ and HarassQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+100) then
-      CastQ(QTarget)
+      CastQ(QTarget, "Harass")
     end
     
   end
@@ -937,11 +942,11 @@ end
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function CastQ(unit)
+function CastQ(unit, mode)
 
   QPos, QHitChance = HPred:GetPredict("Q", unit, myHero)
   
-  if QHitChance >= Menu.HitChance.Q then
+  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1.02 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
@@ -1052,27 +1057,40 @@ function OnDraw()
     DrawCircle(QTarget.x, QTarget.y, QTarget.z, Q.width/2, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
-  if Menu.Draw.PP.Q and QPos ~= nil then
+  if QHitChance ~= nil then
   
-    if QHitChance <= 0 then
-      color = ARGB(0xFF, 0xFF, 0x00, 0x00)
+    if QHitChance == -1 then
+      Qcolor = ARGB(0xFF, 0x00, 0x00, 0x00)
+    elseif QHitChance < 1 then
+      Qcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
     elseif QHitChance == 3 then
-      color = ARGB(0xFF, 0x00, 0x54, 0xFF)
+      Qcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
     elseif QHitChance >= 2 then
-      color = ARGB(0xFF, 0x1D, 0xDB, 0x16)
+      Qcolor = ARGB(0xFF, 0x1D, 0xDB, 0x16)
     elseif QHitChance >= 1 then
-      color = ARGB(0xFF, 0xFF, 0xE4, 0x00)
+      Qcolor = ARGB(0xFF, 0xFF, 0xE4, 0x00)
     end
     
-    DrawCircle(QPos.x, QPos.y, QPos.z, Q.width/2, color)
-    DrawText("Q HitChance: "..QHitChance, 20, 1250, 550, color)
+  end
+  
+  if Menu.Draw.PP.Q and QPos ~= nil then
+  
+    DrawCircle(QPos.x, QPos.y, QPos.z, Q.width/2, Qcolor)
     
     if Menu.Draw.PP.Line then
-      DrawLine3D(myHero.x, myHero.y, myHero.z, QPos.x, QPos.y, QPos.z, 2, color)
+      DrawLine3D(myHero.x, myHero.y, myHero.z, QPos.x, QPos.y, QPos.z, 2, Qcolor)
     end
     
     QPos = nil
-    QHitChance = nil
+  end
+  
+  if Menu.Draw.Hitchance then
+  
+    if QHitChance ~= nil then
+      DrawText("Q HitChance: "..QHitChance, 20, 1250, 550, Qcolor)
+      QHitChance = nil
+    end
+    
   end
   
   if Menu.Draw.AA then
