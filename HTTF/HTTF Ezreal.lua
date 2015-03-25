@@ -1,4 +1,4 @@
-local Version = "1.1"
+local Version = "1.101"
 local AutoUpdate = true
 
 if myHero.charName ~= "Ezreal" then
@@ -229,7 +229,7 @@ function EzrealMenu()
   Menu:addSubMenu("HitChance Settings", "HitChance")
   
     Menu.HitChance:addSubMenu("Combo", "Combo")
-      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.02)", SCRIPT_PARAM_SLICE, 1.02, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1)", SCRIPT_PARAM_SLICE, 1, 1, 3, 2)
       Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 1.2, 1, 3, 2)
       Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 0.01)", SCRIPT_PARAM_SLICE, .01, .01, 3, 2)
       
@@ -251,7 +251,7 @@ function EzrealMenu()
     Menu.Combo:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("BRK", "Use BRK if my own HP < x%", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
+      Menu.Combo:addParam("BRK", "Use BRK if my own HP < x%", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
     
   Menu:addSubMenu("Clear Settings", "Clear")
   
@@ -1055,7 +1055,7 @@ function GetDmg(spell, enemy)
   elseif spell == "R" then
   
     if R.ready then
-      APDmg = 150*R.level+150+AddDmg+.9*AP
+      APDmg = 200*R.level+150+AddDmg+.9*AP
     end
     
   end
@@ -1072,7 +1072,7 @@ function CastQ(unit, mode)
 
   QPos, QHitChance = HPred:GetPredict("Q", unit, myHero)
   
-  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1.02 then
+  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
@@ -1090,7 +1090,7 @@ function CastW(unit, mode)
 
   WPos, WHitChance = HPred:GetPredict("W", unit, myHero)
   
-  if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 1.02 then
+  if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 1 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _W, toX = WPos.x, toY = WPos.z, fromX = WPos.x, fromY = WPos.z}):send()
