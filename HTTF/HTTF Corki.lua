@@ -1,4 +1,4 @@
-local Version = "1.102"
+local Version = "1.103"
 local AutoUpdate = true
 
 if myHero.charName ~= "Corki" then
@@ -1085,7 +1085,7 @@ function GetDmg(spell, enemy)
   elseif spell == "R" then
   
     if R.ready then
-      APDmg = 80*R.level+100+.4*TotalDmg+.3*AP
+      APDmg = 80*R.level+20+(0.1*R.level+0.1)*TotalDmg+.3*AP
     end
     
   end
