@@ -1,4 +1,4 @@
-local Version = "1.1"
+local Version = "1.2"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -217,6 +217,18 @@ function BlitzcrankMenu()
 
   Menu = scriptConfig("HTTF Blitzcrank", "HTTF Blitzcrank")
   
+    Menu:addSubMenu("Don't Grab Settings", "BlackList")
+    
+    for i, enemy in ipairs(EnemyHeroes) do
+    
+      if enemy.charName == "Alistar" or enemy.charName == "Garen" then
+        Menu.BlackList:addParam(enemy.charName, enemy.charName, SCRIPT_PARAM_ONOFF, true)
+      else
+        Menu.BlackList:addParam(enemy.charName, enemy.charName, SCRIPT_PARAM_ONOFF, false)
+      end
+      
+    end
+    
   Menu:addSubMenu("HitChance Settings", "HitChance")
   
     Menu.HitChance:addSubMenu("Combo", "Combo")
@@ -234,7 +246,7 @@ function BlitzcrankMenu()
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
     Menu.Combo:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("W2", "Default value = 40", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
+    Menu.Combo:addParam("W2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     Menu.Combo:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
@@ -251,7 +263,7 @@ function BlitzcrankMenu()
         Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.JFarm:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.JFarm:addParam("W2", "Default value = 25", SCRIPT_PARAM_SLICE, 25, 0, 100, 0)
+      Menu.Clear.JFarm:addParam("W2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
         Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.JFarm:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
@@ -264,7 +276,7 @@ function BlitzcrankMenu()
     Menu.Harass:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("Q2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, false)
+    Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
     Menu.Harass:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("W2", "Default value = 60", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
@@ -944,9 +956,27 @@ end
 
 function CastQ(unit, mode)
 
+  for i, enemy in ipairs(EnemyHeroes) do
+  
+    if unit == enemy and Menu.BlackList[enemy.charName] then
+      return
+    end
+      
+  end
+  
   QPos, QHitChance = HPred:GetPredict("Q", unit, myHero)
   
-  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1.02 then
+  for i, enemy in ipairs(EnemyHeroes) do
+  
+    if Menu.BlackList[enemy.charName] and HPred:EachCollision("Q", unit, myHero, QPos, enemy) then
+      QHitChance = -1
+      
+      break
+    end
+    
+  end
+  
+  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
