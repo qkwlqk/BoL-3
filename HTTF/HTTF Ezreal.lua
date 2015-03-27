@@ -1,4 +1,4 @@
-local Version = "1.101"
+local Version = "1.102"
 local AutoUpdate = true
 
 if myHero.charName ~= "Ezreal" then
@@ -510,17 +510,45 @@ end
 
 function Targets()
 
-  QTS:update()
-  WTS:update()
+  if RebornLoaded then
+    Target = _G.AutoCarry.Crosshair.Attack_Crosshair.target
+  elseif RevampedLoaded then
+    Target = _G.AutoCarry.Orbwalker.target
+  elseif MMALoaded then
+    Target = _G.MMA_Target
+  elseif SxOrbLoaded then
+    Target = SxOrb:GetTarget()
+  elseif SOWLoaded then
+    Target = SOWVP:GetTarget()
+  end
+  
+  if Target and Target.type == myHero.type and ValidTarget(Target, TrueRange) then
+    QTarget = Target
+    WTarget = Target
+  else
+    QTS:update()
+    WTS:update()
+    QTarget = QTS.target
+    WTarget = WTS.target
+  end
+  
   RTS:update()
   STS:update()
-  
-  QTarget = QTS.target
-  WTarget = WTS.target
   RTarget = RTS.target
   STarget = STS.target
-  
 end
+
+--[[function OrbReset()
+
+  if MMALoaded then
+    _G.MMA_ResetAutoAttack()
+  elseif SxOrbLoaded then
+    SxOrb:ResetAA()
+  elseif SOWLoaded then
+    SOW:resetAA()
+  end
+  
+end]]
 
 ---------------------------------------------------------------------------------
 
@@ -968,6 +996,18 @@ end
 function ManaPercent()
   return (myHero.mana/myHero.maxMana)*100
 end
+
+--[[function OrbwalkCanAttack()
+
+  if RebornLoaded then
+    return _G.AutoCarry.CanAttack
+  elseif RevampedLoaded then
+  elseif MMALoaded then
+  elseif SxOrbLoaded then
+  elseif SOWLoaded then
+  end
+  
+end]]
 
 ---------------------------------------------------------------------------------
 
