@@ -1,4 +1,4 @@
-local Version = "1.102"
+local Version = "1.2"
 local AutoUpdate = true
 
 if myHero.charName ~= "Ezreal" then
@@ -80,6 +80,7 @@ function Variables()
 
   HPred = HPrediction()
   
+  IsRecall = false
   RebornLoaded, RevampedLoaded, MMALoaded, SxOrbLoaded, SOWLoaded = false, false, false, false, false
   
   if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
@@ -248,7 +249,10 @@ function EzrealMenu()
     Menu.Combo:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("W2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, true)
+    Menu.Combo:addParam("R", "Use R (single target)", SCRIPT_PARAM_ONOFF, true)
+      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Combo:addParam("R2", "Use R (multiple target)", SCRIPT_PARAM_ONOFF, true)
+    Menu.Combo:addParam("R3", "Use R min count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("BRK", "Use BRK if my own HP < x%", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
@@ -260,7 +264,7 @@ function EzrealMenu()
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("Q2", "Default value = 40", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
+      Menu.Clear.Farm:addParam("Q2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
         
     Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
       Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
@@ -271,6 +275,7 @@ function EzrealMenu()
       
   Menu:addSubMenu("Harass Settings", "Harass")
     Menu.Harass:addParam("On", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
+    Menu.Harass:addParam("On2", "Harass Toggle", SCRIPT_PARAM_ONKEYTOGGLE, false, GetKey('T'))
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
     Menu.Harass:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
@@ -376,7 +381,7 @@ function Orbwalk()
 
   if _G.AutoCarry then
   
-    if _G.AutoCarry.Helper then
+    if _G.Reborn_Initialised then
       RebornLoaded = true
       ScriptMsg("Found SAC: Reborn.")
     else
@@ -390,6 +395,7 @@ function Orbwalk()
     MMALoaded = true
     ScriptMsg("Found MMA.")
   elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
+  
     require 'SxOrbWalk'
     
     SxOrbMenu = scriptConfig("SxOrb Settings", "SxOrb")
@@ -444,7 +450,7 @@ function OnTick()
     JFarm()
   end
   
-  if Menu.Harass.On then
+  if Menu.Harass.On or (Menu.Harass.On2 and not IsRecall) then
     Harass()
   end
   
@@ -503,15 +509,18 @@ function Checks()
   
   AddRange = GetDistance(myHero.minBBox)/2
   TrueRange = myHero.range+AddRange
-  
 end
 
 ---------------------------------------------------------------------------------
 
 function Targets()
 
+  --[[AATarget = nil
+  
   if RebornLoaded then
-    Target = _G.AutoCarry.Crosshair.Attack_Crosshair.target
+    --Target = _G.AutoCarry.Crosshair.Attack_Crosshair.target
+    --Target = _G.AutoCarry.Crosshair._Skills_Crosshair.target
+    Target = _G.AutoCarry.Crosshair:GetTarget()
   elseif RevampedLoaded then
     Target = _G.AutoCarry.Orbwalker.target
   elseif MMALoaded then
@@ -523,29 +532,31 @@ function Targets()
   end
   
   if Target and Target.type == myHero.type and ValidTarget(Target, TrueRange) then
-    QTarget = Target
-    WTarget = Target
-  else
-    QTS:update()
-    WTS:update()
-    QTarget = QTS.target
-    WTarget = WTS.target
-  end
+    AATarget = Target
+  end]]
   
+  QTS:update()
+  WTS:update()
   RTS:update()
   STS:update()
+  QTarget = QTS.target
+  WTarget = WTS.target
   RTarget = RTS.target
   STarget = STS.target
 end
 
 --[[function OrbReset()
 
-  if MMALoaded then
+  if RebornLoaded then
+    _G.AutoCarry.Orbwalker:ResetAttackTimer
+  elseif RevampedLoaded then
+  elseif MMALoaded then
     _G.MMA_ResetAutoAttack()
   elseif SxOrbLoaded then
     SxOrb:ResetAA()
   elseif SOWLoaded then
-    SOW:resetAA()
+    SOWVP:resetAA()
+    --SOW:resetAA()
   end
   
 end]]
@@ -599,9 +610,21 @@ function Combo()
   if RTarget ~= nil then
   
     local ComboR = Menu.Combo.R
+    local ComboR2 = Menu.Combo.R2
+    local QTargetDmg = 0 or Q.ready and GetDmg("Q", RTarget)
+    local WTargetDmg = 0 or W.ready and GetDmg("W", RTarget)
+    local RTargetDmg = GetDmg("R", RTarget)
     
-    if R.ready and ComboR and ValidTarget(RTarget, R.range+100) then
-      CastR(RTarget, "Combo")
+    if R.ready and ValidTarget(RTarget, R.range+100) then
+    
+      if ComboR and QTargetDmg+WTargetDmg+RTargetDmg >= RTarget.health then
+        CastR(RTarget, "Combo")
+      end
+      
+      if ComboR2 then
+        CastR(RTarget, "Combo2")
+      end
+      
     end
     
   end
@@ -792,7 +815,7 @@ function LastHit()
       local QMinionDmg = GetDmg("Q", minion)
       
       if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+100) then
-        CastQ(minion)
+        CastQ(minion, "LastHit")
       end
       
     end
@@ -844,7 +867,7 @@ function JSteal()
       for j = 1, #FocusJungleNames do
       
         if junglemob.name == FocusJungleNames[j] and QJunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.range+100) then
-          CastQ(junglemob)
+          CastQ(junglemob, "JSteal")
         end
         
       end
@@ -895,7 +918,7 @@ function JstealAlways()
       for j = 1, #FocusJungleNames do
       
         if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and QJunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.range+100) then
-          CastQ(junglemob)
+          CastQ(junglemob, "JSteal")
         end
         
       end
@@ -936,11 +959,11 @@ function KillSteal()
     end
     
     if Q.ready and KillStealQ and QTargetDmg >= enemy.health and ValidTarget(enemy, Q.range+100) then
-      CastQ(enemy)
+      CastQ(enemy, "KillSteal")
     end
     
     if W.ready and KillStealW and WTargetDmg >= enemy.health and ValidTarget(enemy, W.range+100) then
-      CastW(enemy)
+      CastW(enemy, "KillSteal")
     end
     
   end
@@ -997,17 +1020,21 @@ function ManaPercent()
   return (myHero.mana/myHero.maxMana)*100
 end
 
---[[function OrbwalkCanAttack()
+function OrbwalkCanMove()
 
   if RebornLoaded then
-    return _G.AutoCarry.CanAttack
+    return _G.AutoCarry.CanMove
   elseif RevampedLoaded then
   elseif MMALoaded then
+    return _G.MMA_AbleToMove
   elseif SxOrbLoaded then
+    return SxOrb:CanMove()
   elseif SOWLoaded then
+    return SOWVP:CanMove()
+    --return SOW:CanMove()
   end
   
-end]]
+end
 
 ---------------------------------------------------------------------------------
 
@@ -1075,29 +1102,13 @@ function GetDmg(spell, enemy)
   elseif spell == "AA" then
     ADDmg = TotalDmg
   elseif spell == "Q" then
-  
-    if Q.ready then
-      ADDmg = 20*Q.level+15+1.1*TotalDmg+.4*AP
-    end
-    
+    ADDmg = 20*Q.level+15+1.1*TotalDmg+.4*AP    
   elseif spell == "W" then
-  
-    if W.ready then
-      APDmg = 45*W.level+25+.8*AP
-    end
-    
+    APDmg = 45*W.level+25+.8*AP
   elseif spell == "E" then
-  
-    if E.ready then
-      APDmg = 50*E.level+25+.75*AP
-    end
-    
+    APDmg = 50*E.level+25+.75*AP
   elseif spell == "R" then
-  
-    if R.ready then
-      APDmg = 200*R.level+150+AddDmg+.9*AP
-    end
-    
+    APDmg = 200*R.level+150+AddDmg+.9*AP
   end
   
   local TrueDmg = ADDmg*(1-ArmorPercent)+APDmg*(1-MagicArmorPercent)
@@ -1110,9 +1121,13 @@ end
 
 function CastQ(unit, mode)
 
+  if unit.dead or mode ~= "LastHit" and mode ~= "JSteal" and mode ~= "KillSteal" and not OrbwalkCanMove() then
+    return
+  end
+  
   QPos, QHitChance = HPred:GetPredict("Q", unit, myHero)
   
-  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1 then
+  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or (mode == "LastHit" or mode == "JSteal" or mode == "KillSteal" or mode == nil) and QHitChance >= 1 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
@@ -1128,9 +1143,13 @@ end
 
 function CastW(unit, mode)
 
+  if unit.dead or mode ~= "KillSteal" and not OrbwalkCanMove() then
+    return
+  end
+  
   WPos, WHitChance = HPred:GetPredict("W", unit, myHero)
   
-  if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 1 then
+  if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or (mode == "KillSteal" or mode == nil) and WHitChance >= 1 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _W, toX = WPos.x, toY = WPos.z, fromX = WPos.x, fromY = WPos.z}):send()
@@ -1158,9 +1177,19 @@ end
 
 function CastR(unit, mode)
 
-  RPos, RHitChance = HPred:GetPredict("R", unit, myHero)
+  if unit.dead then
+    return
+  end
   
-  if mode == "Combo" and RHitChance >= Menu.HitChance.Combo.R or mode == nil and RHitChance >= .01 then
+  local ComboR3 = Menu.Combo.R3
+  
+  if mode == "Combo2" then
+    RPos, RHitChance, RNoH = HPred:GetPredict("R", unit, myHero, true)
+  else
+    RPos, RHitChance = HPred:GetPredict("R", unit, myHero)
+  end
+  
+  if mode == "Combo" and RHitChance >= Menu.HitChance.Combo.R or mode == "Combo2" and RNoH >= ComboR3 or mode == nil and RHitChance >= 0.01 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _R, toX = RPos.x, toY = RPos.z, fromX = RPos.x, fromY = RPos.z}):send()
@@ -1176,6 +1205,10 @@ end
 
 function CastI(enemy)
 
+  if enemy.dead then
+    return
+  end
+  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Ignite, targetNetworkId = enemy.networkID}):send()
   else
@@ -1188,6 +1221,10 @@ end
 
 function CastS(enemy)
 
+  if enemy.dead then
+    return
+  end
+  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
   else
@@ -1200,6 +1237,10 @@ end
 
 function CastBC(enemy)
 
+  if enemy.dead then
+    return
+  end
+  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["BC"].slot, targetNetworkId = enemy.networkID}):send()
   else
@@ -1212,6 +1253,10 @@ end
 
 function CastBRK(enemy)
 
+  if enemy.dead then
+    return
+  end
+  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["BRK"].slot, targetNetworkId = enemy.networkID}):send()
   else
@@ -1421,6 +1466,23 @@ function OnDraw()
       
     end
     
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+
+function OnAnimation(unit, animation)
+
+  if not unit.isMe then
+    return
+  end
+  
+  if animation == "recall" then
+    IsRecall = true
+  elseif animation == "recall_winddown" or animation == "Run" or animation == "Spell1" or animation == "Spell2" or animation == "Spell3" or animation == "Spell4" then
+    IsRecall = false
   end
   
 end
