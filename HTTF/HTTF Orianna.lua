@@ -1,4 +1,4 @@
-local Version = "1.0"
+local Version = "1.001"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -13,7 +13,7 @@ end
 
 ---------------------------------------------------------------------------------
 
-local Host = "raw.github.com"
+--[[local Host = "raw.github.com"
 
 local ServerPath = "/BolHTTF/BoL/master/Server.status".."?rand="..math.random(1,10000)
 local ServerData = GetWebResult(Host, ServerPath)
@@ -60,7 +60,7 @@ if AutoUpdate then
   
 else
   ScriptMsg("AutoUpdate: false")
-end
+end]]
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
@@ -1302,7 +1302,7 @@ function CastQ(unit, mode)
   
   QPos, QHitChance = HPred:GetPredict("Q", unit, Ball)
   
-  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1.02 then
+  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
@@ -1324,7 +1324,7 @@ function CastW(unit, mode)
   
   WPos, WHitChance = HPred:GetPredict("W", unit, Ball)
   
-  if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 2.02 then
+  if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 2 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _W}):send()
@@ -1346,7 +1346,7 @@ function CastE(unit, mode)
   
   EPos, EHitChance = HPred:GetPredict("E", unit, Ball, false, GetDistance(Ball, myHero))
   
-  if mode == "Combo" and EHitChance >= Menu.HitChance.Combo.E or mode == "Harass" and EHitChance >= Menu.HitChance.Harass.E or mode == nil and EHitChance >= 1.02 then
+  if mode == "Combo" and EHitChance >= Menu.HitChance.Combo.E or mode == "Harass" and EHitChance >= Menu.HitChance.Harass.E or mode == nil and EHitChance >= 1 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _E, targetNetworkId = myHero.networkID}):send()
@@ -1591,6 +1591,12 @@ function OnDraw()
     if RHitChance ~= nil then
       DrawText("R HitChance: "..RHitChance, 20, 1250, 700, Rcolor)
       RHitChance = nil
+      
+      if RNoH ~= nil then
+        DrawText("R NoH: "..RNoH, 20, 1050, 550, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+        RNoH = nil
+      end
+      
     end
     
   end
@@ -1600,11 +1606,11 @@ function OnDraw()
   end
   
   if Menu.Draw.Q then
-    DrawCircle(myHero.x, myHero.y, myHero.z, Q.range+Q.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+    DrawCircle(myHero.x, myHero.y, myHero.z, Q.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
   if Menu.Draw.W and W.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, W.range+W.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+    DrawCircle(myHero.x, myHero.y, myHero.z, W.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
   if Menu.Draw.E and E.ready then
@@ -1612,7 +1618,7 @@ function OnDraw()
   end
   
   if Menu.Draw.R and R.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, R.range+R.radius, ARGB(0xFF, 0x00, 0x00, 0xFF))
+    DrawCircle(myHero.x, myHero.y, myHero.z, R.range, ARGB(0xFF, 0x00, 0x00, 0xFF))
   end
   
   if Menu.Draw.I and I.ready then
@@ -1682,7 +1688,7 @@ end
 
 function OnAnimation(unit, animation)
 
-  if unit ~= myHero or animation == "Run" or animation == "Idle1" then
+  if not unit.isMe or animation == "Run" or animation == "Idle1" then
     return
   end
   
@@ -1696,7 +1702,7 @@ end
 
 function OnCreateObj(object)
 
-  if object.name == "TheDoomBall" then
+  if object.name == "TheDoomBall" and object.team == myHero.team then
     Ball = object
   end
   
