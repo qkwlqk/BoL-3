@@ -1,4 +1,4 @@
-local Version = "1.103"
+local Version = "1.104"
 local AutoUpdate = true
 
 if myHero.charName ~= "Corki" then
@@ -13,7 +13,7 @@ end
 
 ---------------------------------------------------------------------------------
 
-local Host = "raw.github.com"
+--[[local Host = "raw.github.com"
 
 local ServerPath = "/BolHTTF/BoL/master/Server.status".."?rand="..math.random(1,10000)
 local ServerData = GetWebResult(Host, ServerPath)
@@ -60,7 +60,7 @@ if AutoUpdate then
   
 else
   ScriptMsg("AutoUpdate: false")
-end
+end]]
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
@@ -343,7 +343,7 @@ function CorkiMenu()
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("Q", "Draw Q range", SCRIPT_PARAM_ONOFF, true)
-    Menu.Draw:addParam("R", "Draw R range", SCRIPT_PARAM_ONOFF, false)
+    Menu.Draw:addParam("R", "Draw R range", SCRIPT_PARAM_ONOFF, true)
     if Ignite ~= nil then
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("I", "Draw Ignite range", SCRIPT_PARAM_ONOFF, false)
@@ -1118,7 +1118,7 @@ end
 
 function CastR(unit)
 
-  RPos, RHitChance = HPred:GetPredict("R", unit, myHero)
+  RPos, RHitChance = HPred:GetPredict("R", unit, myHero, false, R.range)
   
   if mode == "Combo" and RHitChance >= Menu.HitChance.Combo.R or mode == nil and RHitChance >= 1 then
   
