@@ -1,4 +1,4 @@
-local Version = "1.2"
+local Version = "1.201"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -13,7 +13,7 @@ end
 
 ---------------------------------------------------------------------------------
 
-local Host = "raw.github.com"
+--[[local Host = "raw.github.com"
 
 local ServerPath = "/BolHTTF/BoL/master/Server.status".."?rand="..math.random(1,10000)
 local ServerData = GetWebResult(Host, ServerPath)
@@ -60,7 +60,7 @@ if AutoUpdate then
   
 else
   ScriptMsg("AutoUpdate: false")
-end
+end]]
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
