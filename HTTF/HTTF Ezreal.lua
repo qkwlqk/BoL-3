@@ -1,4 +1,4 @@
-local Version = "1.2"
+local Version = "1.201"
 local AutoUpdate = true
 
 if myHero.charName ~= "Ezreal" then
@@ -13,7 +13,7 @@ end
 
 ---------------------------------------------------------------------------------
 
-local Host = "raw.github.com"
+--[[local Host = "raw.github.com"
 
 local ServerPath = "/BolHTTF/BoL/master/Server.status".."?rand="..math.random(1,10000)
 local ServerData = GetWebResult(Host, ServerPath)
@@ -60,7 +60,7 @@ if AutoUpdate then
   
 else
   ScriptMsg("AutoUpdate: false")
-end
+end]]
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
@@ -230,7 +230,7 @@ function EzrealMenu()
   Menu:addSubMenu("HitChance Settings", "HitChance")
   
     Menu.HitChance:addSubMenu("Combo", "Combo")
-      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1)", SCRIPT_PARAM_SLICE, 1, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.02)", SCRIPT_PARAM_SLICE, 1.02, 1, 3, 2)
       Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 1.2, 1, 3, 2)
       Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 0.01)", SCRIPT_PARAM_SLICE, .01, .01, 3, 2)
       
@@ -256,7 +256,7 @@ function EzrealMenu()
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("BRK", "Use BRK if my own HP < x%", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
-    
+      
   Menu:addSubMenu("Clear Settings", "Clear")
   
     Menu.Clear:addSubMenu("Lane Clear Settings", "Farm")
@@ -265,7 +265,7 @@ function EzrealMenu()
       Menu.Clear.Farm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("Q2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
-        
+      
     Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
       Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
         Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
@@ -337,7 +337,7 @@ function EzrealMenu()
     end
     --Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, false)
     --Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 1, {"R>Q>W>E (QEWQ)"})
-  
+    
   Menu:addSubMenu("Draw Settings", "Draw")
   
     Menu.Draw:addSubMenu("Draw Target", "Target")
