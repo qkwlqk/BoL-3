@@ -1,4 +1,4 @@
-local Version = "1.11"
+local Version = "1.101"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -14,19 +14,6 @@ end
 ---------------------------------------------------------------------------------
 
 local Host = "raw.github.com"
-
-local ServerPath = "/BolHTTF/BoL/master/Server.status".."?rand="..math.random(1,10000)
-local ServerData = GetWebResult(Host, ServerPath)
-
-ScriptMsg("Server check...")
-
-assert(load(ServerData))()
-
-print("<font color=\"#daa520\"><b>HTTF Orianna:</b> </font><font color=\"#FFFFFF\">Server status: </font><font color=\"#ff0000\"><b>"..Server.."</b></font>")
-
-if Server == "Off" then
-  return
-end
 
 local ScriptFilePath = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 
@@ -1340,7 +1327,7 @@ function CastW(unit, mode)
     return
   end
   
-  WPos, WHitChance = HPred:GetPredict("W", unit, Ball, myHero)
+  WPos, WHitChance = HPred:GetPredict("W", unit, Ball)
   
   if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 2 then
   
