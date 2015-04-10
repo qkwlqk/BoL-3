@@ -1,4 +1,4 @@
-local Version = "1.104"
+local Version = "1.105"
 local AutoUpdate = true
 
 if myHero.charName ~= "Corki" then
@@ -13,20 +13,7 @@ end
 
 ---------------------------------------------------------------------------------
 
---[[local Host = "raw.github.com"
-
-local ServerPath = "/BolHTTF/BoL/master/Server.status".."?rand="..math.random(1,10000)
-local ServerData = GetWebResult(Host, ServerPath)
-
-ScriptMsg("Server check...")
-
-assert(load(ServerData))()
-
-print("<font color=\"#daa520\"><b>HTTF Corki:</b> </font><font color=\"#FFFFFF\">Server status: </font><font color=\"#ff0000\"><b>"..Server.."</b></font>")
-
-if Server == "Off" then
-  return
-end
+local Host = "raw.github.com"
 
 local ScriptFilePath = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 
@@ -60,7 +47,7 @@ if AutoUpdate then
   
 else
   ScriptMsg("AutoUpdate: false")
-end]]
+end
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
