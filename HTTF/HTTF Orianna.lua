@@ -1,4 +1,4 @@
-local Version = "1.001"
+local Version = "1.1"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -13,20 +13,7 @@ end
 
 ---------------------------------------------------------------------------------
 
---[[local Host = "raw.github.com"
-
-local ServerPath = "/BolHTTF/BoL/master/Server.status".."?rand="..math.random(1,10000)
-local ServerData = GetWebResult(Host, ServerPath)
-
-ScriptMsg("Server check...")
-
-assert(load(ServerData))()
-
-print("<font color=\"#daa520\"><b>HTTF Orianna:</b> </font><font color=\"#FFFFFF\">Server status: </font><font color=\"#ff0000\"><b>"..Server.."</b></font>")
-
-if Server == "Off" then
-  return
-end
+local Host = "raw.github.com"
 
 local ScriptFilePath = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 
@@ -60,7 +47,7 @@ if AutoUpdate then
   
 else
   ScriptMsg("AutoUpdate: false")
-end]]
+end
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
@@ -90,10 +77,10 @@ function Variables()
     Smite = SUMMONER_2
   end
   
-  Q = {range = 825, radius = 175, ready}
+  Q = {range = 825, radius = 175, speed = 1200, ready}
   W = {range = 1250, radius = 225, ready}
-  E = {range = 1250, width = 80, ready}
-  R = {range = 1250, radius = 410, ready}
+  E = {range = 1250, speed = 1800, width = 80, ready}
+  R = {range = 1250, radius = 410, ready} --delay = .5
   I = {range = 600, ready}
   S = {range = 760, ready}
   
@@ -229,13 +216,11 @@ function OriannaMenu()
     Menu.HitChance:addSubMenu("Combo", "Combo")
       Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.6)", SCRIPT_PARAM_SLICE, 1.6, 1, 3, 2)
       Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
-      Menu.HitChance.Combo:addParam("E", "E HitChacne (Default value = 1.6)", SCRIPT_PARAM_SLICE, 1.6, 1, 3, 2)
-      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
       
     Menu.HitChance:addSubMenu("Harass", "Harass")
       Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
       Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 1, 3, 2)
-      Menu.HitChance.Harass:addParam("E", "E HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
       
   Menu:addSubMenu("Combo Settings", "Combo")
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
@@ -250,11 +235,13 @@ function OriannaMenu()
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     Menu.Combo:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("E2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
+    Menu.Combo:addParam("E2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, true)
     Menu.Combo:addParam("Info", "Use R if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Combo:addParam("R3", "Use R Min Count (Default = 3)", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("BRK", "Use BRK if my own HP < x%", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
@@ -304,7 +291,7 @@ function OriannaMenu()
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     Menu.Harass:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("E2", "Default value = 90", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
+    Menu.Harass:addParam("E2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
     
   Menu:addSubMenu("LastHit Settings", "LastHit")
     Menu.LastHit:addParam("On", "LastHit", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
@@ -377,7 +364,7 @@ function OriannaMenu()
     Menu.Draw:addSubMenu("Draw Predicted Position", "PP")
       Menu.Draw.PP:addParam("Q", "Draw Q Pos", SCRIPT_PARAM_ONOFF, true)
       Menu.Draw.PP:addParam("W", "Draw W Pos", SCRIPT_PARAM_ONOFF, false)
-      Menu.Draw.PP:addParam("E", "Draw E Pos", SCRIPT_PARAM_ONOFF, false)
+      Menu.Draw.PP:addParam("E", "Draw E Line", SCRIPT_PARAM_ONOFF, false)
       Menu.Draw.PP:addParam("R", "Draw R Pos", SCRIPT_PARAM_ONOFF, false)
       Menu.Draw.PP:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Draw.PP:addParam("Line", "Draw Line to Pos", SCRIPT_PARAM_ONOFF, true)
@@ -513,9 +500,15 @@ function Combo()
   
     local ComboQ = Menu.Combo.Q
     local ComboQ2 = Menu.Combo.Q2
+    local ComboE = Menu.Combo.E
+    local ComboE2 = Menu.Combo.E2
     
     if Q.ready and ComboQ and ComboQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+Q.radius+100) then
       CastQ(QTarget, "Combo")
+    end
+    
+    if Ball ~= nil and QPos ~= nil and Q.ready and E.ready and ComboQ and ComboE and ComboQ2+ComboE2 <= ManaPercent() and GetDistance(QPos, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QPos, myHero)/1200 then
+      CastEMe()
     end
     
   end
@@ -537,7 +530,7 @@ function Combo()
     local ComboE2 = Menu.Combo.E2
     
     if E.ready and ComboE and ComboE2 <= ManaPercent() and ValidTarget(ETarget, E.range+100) then
-      CastE(ETarget, "Combo")
+      CastE(ETarget)
     end
     
   end
@@ -602,7 +595,7 @@ function Farm()
         return
       end
       
-      local QMinionDmg = .4*GetDmg("Q", minion)
+      local QMinionDmg = .7*GetDmg("Q", minion)
       
       if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius+100) then
         CastQ(minion)
@@ -828,14 +821,20 @@ end
 ---------------------------------------------------------------------------------
 
 function Harass()
-  
+
   if QTarget ~= nil then
   
     local HarassQ = Menu.Harass.Q
     local HarassQ2 = Menu.Harass.Q2
+    local HarassE = Menu.Harass.E
+    local HarassE2 = Menu.Harass.E2
     
     if Q.ready and HarassQ and HarassQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+Q.radius+100) then
       CastQ(QTarget, "Harass")
+    end
+    
+    if Ball ~= nil and QPos ~= nil and QHitChance ~= nil and QHitChance >= Menu.HitChance.Harass.Q and Q.ready and E.ready and HarassQ and HarassE and HarassQ2+HarassE2 <= ManaPercent() and GetDistance(QPos, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QPos, myHero)/1200 then
+      CastEMe()
     end
     
   end
@@ -857,7 +856,7 @@ function Harass()
     local HarassE2 = Menu.Harass.E2
     
     if E.ready and HarassE and HarassE2 <= ManaPercent() and ValidTarget(ETarget, E.range+100) then
-      CastE(ETarget, "Harass")
+      CastE(ETarget)
     end
     
   end
@@ -883,7 +882,7 @@ function LastHit()
         return
       end
       
-      local QMinionDmg = .4*GetDmg("Q", minion)
+      local QMinionDmg = .7*GetDmg("Q", minion)
       
       if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius+100) then
         CastQ(minion)
@@ -1143,7 +1142,7 @@ function KillSteal()
        return
     end
     
-    local QTargetDmg = .4*GetDmg("Q", enemy)
+    local QTargetDmg = .7*GetDmg("Q", enemy)
     local WTargetDmg = GetDmg("W", enemy)
     local ETargetDmg = GetDmg("E", enemy)
     local RTargetDmg = GetDmg("R", enemy)
@@ -1182,7 +1181,13 @@ end
 ---------------------------------------------------------------------------------
 
 function Flee()
+
   MoveToMouse()
+  
+  if W.ready and Ball == myHero then
+    CastSpell(_W)
+  end
+  
 end
 
 ---------------------------------------------------------------------------------
@@ -1338,15 +1343,15 @@ end
 
 ---------------------------------------------------------------------------------
 
-function CastE(unit, mode)
+function CastE(unit)
 
   if Ball == nil or Ball == myHero then
     return
   end
   
-  EPos, EHitChance = HPred:GetPredict("E", unit, Ball, false, GetDistance(Ball, myHero))
+  EHit = HPred:SpellCollision("E", unit, Ball, myHero)
   
-  if mode == "Combo" and EHitChance >= Menu.HitChance.Combo.E or mode == "Harass" and EHitChance >= Menu.HitChance.Harass.E or mode == nil and EHitChance >= 1 then
+  if EHit then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _E, targetNetworkId = myHero.networkID}):send()
@@ -1354,6 +1359,22 @@ function CastE(unit, mode)
       CastSpell(_E, myHero)
     end
     
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function CastEMe()
+
+  if Ball == nil then
+    return
+  end
+  
+  if VIP_USER and Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = _E, targetNetworkId = myHero.networkID}):send()
+  else
+    CastSpell(_E, myHero)
   end
   
 end
@@ -1368,7 +1389,7 @@ function CastR(unit, mode)
   
   RPos, RHitChance, RNoH = HPred:GetPredict("R", unit, Ball, true)
   
-  if mode == "Combo" and RNoH >= 3 and RHitChance >= Menu.HitChance.Combo.R or mode == nil and RHitChance == 3 then
+  if mode == "Combo" and (RHitChance >= Menu.HitChance.Combo.R or RNoH >= Menu.Combo.R3) or mode == nil and RHitChance >= 2 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _R}):send()
@@ -1495,18 +1516,14 @@ function OnDraw()
   
   end
   
-  if EHitChance ~= nil then
+  if EHit ~= nil then
   
-    if EHitChance == 0 then
-      Ecolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
-    elseif EHitChance == 3 then
+    if EHit then
       Ecolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
-    elseif EHitChance >= 2 then
-      Ecolor = ARGB(0xFF, 0x1D, 0xDB, 0x16)
-    elseif EHitChance >= 1 then
-      Ecolor = ARGB(0xFF, 0xFF, 0xE4, 0x00)
+    else
+      Ecolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
     end
-  
+    
   end
   
   if RHitChance ~= nil then
@@ -1547,15 +1564,8 @@ function OnDraw()
       WPos = nil
     end
     
-    if Menu.Draw.PP.E and EPos ~= nil then
-    
-      DrawCircle(EPos.x, EPos.y, EPos.z, E.width/2, Ecolor)
-      
-      if Menu.Draw.PP.Line then
-        DrawLine3D(Ball.x, Ball.y, Ball.z, EPos.x, EPos.y, EPos.z, 2, Ecolor)
-      end
-      
-      EPos = nil
+    if Menu.Draw.PP.E and EHit ~= nil then
+      DrawLine3D(Ball.x, Ball.y, Ball.z, myHero.x, myHero.y, myHero.z, 2, Ecolor)
     end
     
     if Menu.Draw.PP.R and RPos ~= nil then
@@ -1583,9 +1593,8 @@ function OnDraw()
       WHitChance = nil
     end
   
-    if EHitChance ~= nil then
-      DrawText("E HitChance: "..EHitChance, 20, 1250, 650, Ecolor)
-      EHitChance = nil
+    if EHit ~= nil then
+      DrawText("E Hit: "..tostring(EHit), 20, 1250, 650, Ecolor)
     end
     
     if RHitChance ~= nil then
@@ -1600,6 +1609,8 @@ function OnDraw()
     end
     
   end
+  
+  EHit = nil
   
   if Menu.Draw.AA then
     DrawCircle(myHero.x, myHero.y, myHero.z, TrueRange, ARGB(0xFF, 0, 0xFF, 0))
@@ -1688,7 +1699,7 @@ end
 
 function OnAnimation(unit, animation)
 
-  if not unit.isMe or animation == "Run" or animation == "Idle1" then
+  if not unit.isMe then
     return
   end
   
@@ -1702,6 +1713,10 @@ end
 
 function OnCreateObj(object)
 
+  if object.team ~= myHero.team then
+    return
+  end
+  
   if object.name == "TheDoomBall" and object.team == myHero.team then
     Ball = object
   end
