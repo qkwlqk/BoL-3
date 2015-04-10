@@ -1,4 +1,4 @@
-local Version = "1.11"
+local Version = "1.101"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -9,6 +9,44 @@ require 'HPrediction'
 
 function ScriptMsg(msg)
   print("<font color=\"#daa520\"><b>HTTF URF Orianna:</b></font> <font color=\"#FFFFFF\">"..msg.."</font>")
+end
+
+---------------------------------------------------------------------------------
+
+local Host = "raw.github.com"
+
+local ScriptFilePath = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
+
+local ScriptPath = "/BolHTTF/BoL/master/HTTF/HTTF URF Orianna.lua".."?rand="..math.random(1,10000)
+local UpdateURL = "https://"..Host..ScriptPath
+
+local VersionPath = "/BolHTTF/BoL/master/HTTF/Version/HTTF URF Orianna.version".."?rand="..math.random(1,10000)
+local VersionData = tonumber(GetWebResult(Host, VersionPath))
+
+if AutoUpdate then
+
+  if VersionData then
+  
+    ServerVersion = type(VersionData) == "number" and VersionData or nil
+    
+    if ServerVersion then
+    
+      if tonumber(Version) < ServerVersion then
+        ScriptMsg("New version available: v"..VersionData)
+        ScriptMsg("Updating, please don't press F9.")
+        DelayAction(function() DownloadFile(UpdateURL, ScriptFilePath, function () ScriptMsg("Successfully updated.: v"..Version.." => v"..VersionData..", Press F9 twice to load the updated version.") end) end, 3)
+      else
+        ScriptMsg("You've got the latest version: v"..Version)
+      end
+      
+    end
+    
+  else
+    ScriptMsg("Error downloading version info.")
+  end
+  
+else
+  ScriptMsg("AutoUpdate: false")
 end
 
 ---------------------------------------------------------------------------------
