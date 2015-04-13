@@ -1,5 +1,5 @@
 --https://github.com/LegendBot/Developer_Snippets/blob/master/LevelSpell.lua
-
+--(5.5)
 if not VIP_USER then
   return
 end
