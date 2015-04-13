@@ -1,4 +1,4 @@
-local Version = "1.0"
+local Version = "1.001"
 local AutoUpdate = true
 
 function ScriptMsg(msg)
@@ -183,6 +183,8 @@ end
 function HTTF_Smite:SmiteMenu()
 
   if self.Smite == nil then
+	  DelayAction(function() print("\n\n\n\n")
+	  ScriptMsg("You don't have Smite\n\n\n") end, 2)
     return
   end
   
@@ -190,7 +192,7 @@ function HTTF_Smite:SmiteMenu()
   
   self.Menu:addSubMenu("Jungle Steal Settings", "JSteal")
     self.Menu.JSteal:addParam("On", "Use Smite", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
-    self.Menu.Auto:addParam("On2", "Use Smite Toggle", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
+    self.Menu.JSteal:addParam("On2", "Use Smite Toggle", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
     
   self.Menu:addSubMenu("KillSteal Settings", "KillSteal")
     self.Menu.KillSteal:addParam("On", "Use Stalker's Blade for KillSteal", SCRIPT_PARAM_ONOFF, true)
@@ -259,7 +261,7 @@ function HTTF_Smite:JSteal()
 
   if self.S.ready then
   
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
       local SJunglemobDmg = self:GetDmg("SMITE", junglemob)
       
@@ -284,7 +286,7 @@ function HTTF_Smite:JstealAlways()
 
   if self.S.ready then
   
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
       local SJunglemobDmg = self:GetDmg("SMITE", junglemob)
       
@@ -307,11 +309,11 @@ end
 
 function HTTF_Smite:KillSteal()
 
-  for i, enemy in ipairs(EnemyHeroes) do
+  for i, enemy in ipairs(self.EnemyHeroes) do
   
-    local SBTarself:GetDmg = self:GetDmg("STALKER", enemy)
+    local SBTargetDmg = self:GetDmg("STALKER", enemy)
     
-    if self.Items["Stalker"].ready and SBTarself:GetDmg >= enemy.health and ValidTarget(enemy, self.S.range) then
+    if self.Items["Stalker"].ready and SBTargetDmg >= enemy.health and ValidTarget(enemy, self.S.range) then
       self:CastS(enemy)
       return
     end
@@ -384,6 +386,10 @@ end
 
 function HTTF_Smite:Draw()
 
+  if self.Smite == nil then
+	  return
+	end
+	
   if not self.Menu.Draw.On or myHero.dead then
     return
   end
@@ -412,7 +418,7 @@ function HTTF_Smite:Draw()
       
     end
     
-    for i, enemy in ipairs(EnemyHeroes) do
+    for i, enemy in ipairs(self.EnemyHeroes) do
     
       if enemy == nil then
         return
