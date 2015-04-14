@@ -1,4 +1,4 @@
-local Version = "1.105"
+local Version = "1.11"
 local AutoUpdate = true
 
 if myHero.charName ~= "Corki" then
@@ -56,12 +56,14 @@ function OnLoad()
 
   Variables()
   CorkiMenu()
+  DelayAction(Orbwalk, 1)
   
 end
 
 function Variables()
 
   HPred = HPrediction()
+  RebornLoaded, RevampedLoaded, MMALoaded, SxOrbLoaded, SOWLoaded = false, false, false, false, false
   
   if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
     Ignite = SUMMONER_1
@@ -347,6 +349,57 @@ function CorkiMenu()
 end
 
 ---------------------------------------------------------------------------------
+
+function Orbwalk()
+
+  if _G.AutoCarry then
+  
+    if _G.Reborn_Initialised then
+      RebornLoaded = true
+      ScriptMsg("Found SAC: Reborn.")
+    else
+      RevampedLoaded = true
+      ScriptMsg("Found SAC: Revamped.")
+    end
+    
+  elseif _G.Reborn_Loaded then
+    DelayAction(Orbwalk, 1)
+  elseif _G.MMA_Loaded then
+    MMALoaded = true
+    ScriptMsg("Found MMA.")
+  elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
+  
+    require 'SxOrbWalk'
+    
+    SxOrbMenu = scriptConfig("SxOrb Settings", "SxOrb")
+    
+    SxOrb = SxOrbWalk()
+    SxOrb:LoadToMenu(SxOrbMenu)
+    
+    SxOrbLoaded = true
+    ScriptMsg("Found SxOrb.")
+  elseif FileExist(LIB_PATH .. "SOW.lua") then
+  
+    require 'SOW'
+    require 'VPrediction'
+    
+    VP = VPrediction()
+    SOWVP = SOW(VP)
+    
+    Menu:addSubMenu("Orbwalk Settings (SOW)", "Orbwalk")
+      Menu.Orbwalk:addParam("Info", "SOW settings", SCRIPT_PARAM_INFO, "")
+      Menu.Orbwalk:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      SOWVP:LoadToMenu(Menu.Orbwalk)
+      
+    SOWLoaded = true
+    ScriptMsg("Found SOW.")
+  else
+    ScriptMsg("Orbwalk not founded.")
+  end
+  
+end
+
+---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
 function OnTick()
@@ -444,6 +497,22 @@ end
 
 ---------------------------------------------------------------------------------
 
+function OrbwalkCanMove()
+
+  if RebornLoaded then
+    return _G.AutoCarry.Orbwalker:CanMove()
+  elseif MMALoaded then
+    return _G.MMA_AbleToMove
+  elseif SxOrbLoaded then
+    return SxOrb:CanMove()
+  elseif SOWLoaded then
+    return SOWVP:CanMove()
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
 function Combo()
 
   if QTarget ~= nil then
@@ -472,10 +541,6 @@ function Combo()
       
         for i, enemy in ipairs(EnemyHeroes) do
         
-          if enemy == nil then
-            return
-          end
-          
           if ValidTarget(enemy, R.range+100) then
             CastR(enemy, "Combo")
           end
@@ -531,10 +596,6 @@ function Farm()
     
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local QMinionDmg = GetDmg("Q", minion)
       
       if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius+100) then
@@ -545,10 +606,6 @@ function Farm()
     
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local AAMinionDmg = GetDmg("AA", minion)
       local QMinionDmg = GetDmg("Q", minion)
       
@@ -564,10 +621,6 @@ function Farm()
     
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local RMinionDmg = GetDmg("R", minion)
       
       if RMinionDmg >= minion.health and ValidTarget(minion, R.range+100) then
@@ -578,10 +631,6 @@ function Farm()
     
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local AAMinionDmg = GetDmg("AA", minion)
       local RMinionDmg = GetDmg("R", minion)
       
@@ -607,11 +656,7 @@ function JFarm()
   if Q.ready and JFarmQ and JFarmQ2 <= ManaPercent() then
   
     for i, junglemob in pairs(JungleMobs.objects) do
-    
-      if junglemob == nil then
-        return
-      end
-      
+          
       local LargeJunglemob = nil
       
       for j = 1, #FocusJungleNames do
@@ -631,10 +676,6 @@ function JFarm()
     
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       if ValidTarget(junglemob, Q.range+Q.radius+100) then
         CastQ(junglemob)
       end
@@ -647,10 +688,6 @@ function JFarm()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local LargeJunglemob = nil
       
       for j = 1, #FocusJungleNames do
@@ -670,10 +707,6 @@ function JFarm()
     
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       if ValidTarget(junglemob, R.range+100) then
         CastR(junglemob)
       end
@@ -714,10 +747,6 @@ function Harass()
       
         for i, enemy in ipairs(EnemyHeroes) do
         
-          if enemy == nil then
-            return
-          end
-          
           if ValidTarget(enemy, R.range+100) then
             CastR(enemy, "Harass")
           end
@@ -745,14 +774,10 @@ function LastHit()
   
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local QMinionDmg = GetDmg("Q", minion)
       
       if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius+100) then
-        CastQ(minion)
+        CastQ(minion, "LastHit")
       end
       
     end
@@ -763,14 +788,10 @@ function LastHit()
   
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local RMinionDmg = GetDmg("R", minion)
       
       if RMinionDmg >= minion.health and ValidTarget(minion, R.range+100) then
-        CastR(minion)
+        CastR(minion, "LastHit")
       end
       
     end
@@ -791,11 +812,7 @@ function JSteal()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
-      local SJunglemobDmg = GetDmg("Smite", junglemob)
+      local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
       
@@ -814,16 +831,12 @@ function JSteal()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local QJunglemobDmg = GetDmg("Q", junglemob)
       
       for j = 1, #FocusJungleNames do
       
         if junglemob.name == FocusJungleNames[j] and QJunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.range+Q.radius+100) then
-          CastQ(junglemob)
+          CastQ(junglemob, "JSteal")
         end
         
       end
@@ -836,16 +849,12 @@ function JSteal()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local RJunglemobDmg = GetDmg("R", junglemob)
       
       for j = 1, #FocusJungleNames do
       
         if junglemob.name == FocusJungleNames[j] and RJunglemobDmg >= junglemob.health and ValidTarget(junglemob, R.range+100) then
-          CastR(junglemob)
+          CastR(junglemob, "JSteal")
         end
         
       end
@@ -864,15 +873,11 @@ function JstealAlways()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
-      local SJunglemobDmg = GetDmg("Smite", junglemob)
+      local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
       
-        if junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1" and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
           CastS(junglemob)
           return
         end
@@ -887,10 +892,6 @@ function JstealAlways()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local QJunglemobDmg = GetDmg("Q", junglemob)
       
       for j = 1, #FocusJungleNames do
@@ -909,10 +910,6 @@ function JstealAlways()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local RJunglemobDmg = GetDmg("R", junglemob)
       
       for j = 1, #FocusJungleNames do
@@ -940,10 +937,6 @@ function KillSteal()
   
   for i, enemy in ipairs(EnemyHeroes) do
   
-    if enemy == nil then
-       return
-    end
-    
     local QTargetDmg = GetDmg("Q", enemy)
     local RTargetDmg = GetDmg("R", enemy)
     local ITargetDmg = GetDmg("IGNITE", enemy)
@@ -959,11 +952,11 @@ function KillSteal()
     end
     
     if Q.ready and KillStealQ and QTargetDmg >= enemy.health and ValidTarget(enemy, Q.range+Q.radius+100) then
-      CastQ(enemy)
+      CastQ(enemy, "KillSteal")
     end
     
     if R.ready and KillStealR and RTargetDmg >= enemy.health and ValidTarget(enemy, R.range+100) then
-      CastR(enemy)
+      CastR(enemy, "KillSteal")
     end
     
   end
@@ -1087,6 +1080,10 @@ end
 
 function CastQ(unit, mode)
 
+  if unit.dead or mode ~= "LastHit" and mode ~= "JSteal" and mode ~= "KillSteal" and not OrbwalkCanMove() then
+    return
+  end
+  
   QPos, QHitChance = HPred:GetPredict("Q", unit, myHero)
   
   if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1 then
@@ -1103,8 +1100,12 @@ end
 
 ---------------------------------------------------------------------------------
 
-function CastR(unit)
+function CastR(unit, mode)
 
+  if unit.dead or mode ~= "LastHit" and mode ~= "JSteal" and mode ~= "KillSteal" and not OrbwalkCanMove() then
+    return
+  end
+  
   RPos, RHitChance = HPred:GetPredict("R", unit, myHero, false, R.range)
   
   if mode == "Combo" and RHitChance >= Menu.HitChance.Combo.R or mode == nil and RHitChance >= 1 then
