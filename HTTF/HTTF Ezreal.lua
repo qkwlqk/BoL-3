@@ -563,14 +563,10 @@ function Combo()
         CastQ(QTarget, "Combo")
       end
       
-      if QHitChance ~= nil and QHitChance >= 0 and QHitChance < 1 then
+      for i, enemy in ipairs(EnemyHeroes) do
       
-        for i, enemy in ipairs(EnemyHeroes) do
-        
-          if ValidTarget(enemy, Q.range+100) then
-            CastQ(enemy, "Combo")
-          end
-          
+        if ValidTarget(enemy, Q.range+100) then
+          CastQ(enemy, "Combo")
         end
         
       end
