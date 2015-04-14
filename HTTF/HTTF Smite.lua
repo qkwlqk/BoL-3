@@ -1,4 +1,4 @@
-local Version = "1.001"
+local Version = "1.002"
 local AutoUpdate = true
 
 function ScriptMsg(msg)
@@ -373,10 +373,10 @@ end
 
 function HTTF_Smite:CastS(enemy)
 
-  if VIP_USER and self.Menu.Misc.UsePacket then
-    Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
+  if self.Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = self.Smite, targetNetworkId = enemy.networkID}):send()
   else
-    CastSpell(Smite, enemy)
+    CastSpell(self.Smite, enemy)
   end
   
 end
