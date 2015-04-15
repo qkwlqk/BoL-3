@@ -1,3 +1,4 @@
+--HTTF Orianna has bug until HPred 1.12 is released.
 local Version = "1.101"
 local AutoUpdate = true
 
