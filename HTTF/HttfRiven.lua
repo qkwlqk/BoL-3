@@ -388,10 +388,10 @@ function RivenMenu()
     Menu.Flee:addParam("On", "Flee (Only Use KillSteal)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
     
   Menu:addSubMenu("Misc Settings", "Misc")
-    --[[if VIP_USER then
+    if VIP_USER then
     Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
     end
-    Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, false)
+    --[[Menu.Misc:addParam("AutoLevel", "Auto Level Spells", SCRIPT_PARAM_ONOFF, false)
     Menu.Misc:addParam("ALOpt", "Skill order : ", SCRIPT_PARAM_LIST, 2, {"R>Q>W>E (EQWQ)", "R>Q>W>E (QEWQ)"})]]
     Menu.Misc:addParam("STT", "Stick to Target", SCRIPT_PARAM_ONOFF, true)
       Menu.Misc:addParam("STTR", "(Dist to Target from mouse <= x)", SCRIPT_PARAM_SLICE, 350, 0, 900, 0)
@@ -2149,7 +2149,7 @@ end
 
 function CastAA(enemy)
   
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  --[[if Menu.Misc.UsePacket then
     Packet("S_MOVE", {sourceNetworkId = myHero.networkID, type = 7, x = enemy.x, y = enemy.z}):send()
   else
     myHero:Attack(enemy)
@@ -2166,12 +2166,11 @@ function CastQ(enemy)
     DelayAction(function() CanTurn = true end, 0.1)
   end
   
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = _Q, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z}):send()
   else
     CastSpell(_Q, enemy.x, enemy.z)
-  end]]
-  CastSpell(_Q, enemy.x, enemy.z)
+  end
   
   LastQ = os.clock()
   
@@ -2181,12 +2180,11 @@ end
 
 function CastW()
 
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = _W}):send()
   else
     CastSpell(_W)
-  end]]
-  CastSpell(_W)
+  end
   
 end
 
@@ -2194,12 +2192,11 @@ end
 
 function CastE(Pos)
   
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = _E, toX = Pos.x, toY = Pos.z, fromX = Pos.x, fromY = Pos.z}):send()
   else
     CastSpell(_E, Pos.x, Pos.z)
-  end]]
-  CastSpell(_E, Pos.x, Pos.z)
+  end
   
   LastE = os.clock()
   
@@ -2209,12 +2206,11 @@ end
 
 function CastFR()
   
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet('S_CAST', {spellId = _R}):send()
   else
     CastSpell(_R)
-  end]]
-  CastSpell(_R)
+  end
   
 end
 
@@ -2228,12 +2224,11 @@ function CastSR(enemy)
   CanW = false
   CanE = false
   
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet('S_CAST', {spellId = _R, toX = enemy.x, toY = enemy.z, fromX = enemy.x, fromY = enemy.z}):send()
   else
     CastSpell(_R, enemy.x, enemy.z)
-  end]]
-  CastSpell(_R, enemy.x, enemy.z)
+  end
   
 end
 
@@ -2269,12 +2264,11 @@ end
 
 function CastI(enemy)
   
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Ignite, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Ignite, enemy)
-  end]]
-  CastSpell(Ignite, enemy)
+  end
   
 end
 
@@ -2282,12 +2276,11 @@ end
 
 function CastS(enemy)
   
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Smite, enemy)
-  end]]
-  CastSpell(Smite, enemy)
+  end
   
 end
 
@@ -2295,12 +2288,11 @@ end
 
 function CastF(Pos)
   
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Flash, toX = Pos.x, toY = Pos.z, fromX = Pos.x, fromY = Pos.z}):send()
   else
     CastSpell(Flash, Pos.x, Pos.z)
-  end]]
-  CastSpell(Flash, Pos.x, Pos.z)
+  end
   
 end
 
@@ -2308,12 +2300,11 @@ end
 
 function CastT()
 
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["Hydra"].slot}):send()
   else
     CastSpell(Items["Tiamat"].slot)
-  end]]
-  CastSpell(Items["Tiamat"].slot)
+  end
   
 end
 
@@ -2321,12 +2312,11 @@ end
 
 function CastH()
 
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["Hydra"].slot}):send()
   else
     CastSpell(Items["Hydra"].slot)
-  end]]
-  CastSpell(Items["Hydra"].slot)
+  end
   
 end
 
@@ -2334,12 +2324,11 @@ end
 
 function CastY()
 
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["Youmuu"].slot}):send()
   else
     CastSpell(Items["Youmuu"].slot)
-  end]]
-  CastSpell(Items["Youmuu"].slot)
+  end
   
 end
 
@@ -2347,12 +2336,11 @@ end
 
 function CastBC(enemy)
 
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["BC"].slot, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Items["BC"].slot, enemy)
-  end]]
-  CastSpell(Items["BC"].slot, enemy)
+  end
   
 end
 
@@ -2360,12 +2348,11 @@ end
 
 function CastBRK(enemy)
 
-  --[[if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["BRK"].slot, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Items["BRK"].slot, enemy)
-  end]]
-  CastSpell(Items["BRK"].slot, enemy)
+  end
   
 end
 
@@ -2385,21 +2372,17 @@ end
 
 function MoveToMouse()
 
-  if GetDistance(mousePos) then
+  if mousePos and GetDistance(mousePos) <= 100 then
     MousePos = myHero+(Vector(mousePos)-myHero):normalized()*300
+  else
+    MousePos = mousePos
   end
   
-  --[[if VIP_USER and Menu.Misc.UsePacket then
-    Packet("S_MOVE", {MousePos.x, MousePos.z}):send()
-  else
-    myHero:MoveTo(MousePos.x, MousePos.z)
-  end]]
-  myHero:MoveTo(MousePos.x, MousePos.z)
-  
+  MoveToPos(MousePos)
 end
 
 ---------------------------------------------------------------------------------
----------------------------------------------------------------------------------Doesn't work for free user, Now
+---------------------------------------------------------------------------------Doesn't work
 
 --[[function OnGainBuff(unit, buff)
 
@@ -2459,9 +2442,10 @@ function OnAnimation(unit, animation)
 
   if unit.isMe then
   
-    if animation == "Idle1" then
+    if animation == "Idle1" and not CanAA and not CanMove then
       BeingAA = false
       CanAA = true
+      CanMove = true
     end
     
   end
