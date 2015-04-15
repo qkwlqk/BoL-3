@@ -1,3 +1,4 @@
+-- ver 1.11 has AutoUpdate Error, please update manually when ver 1.12 is released.
 local Version = "1.11"
 local AutoUpdate = true
 
