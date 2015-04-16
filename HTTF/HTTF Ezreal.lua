@@ -1,4 +1,4 @@
-local Version = "1.21"
+local Version = "1.22"
 local AutoUpdate = true
 
 if myHero.charName ~= "Ezreal" then
@@ -218,12 +218,12 @@ function EzrealMenu()
   
     Menu.HitChance:addSubMenu("Combo", "Combo")
       Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.02)", SCRIPT_PARAM_SLICE, 1.02, 1, 3, 2)
-      Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 1.2, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 1.02)", SCRIPT_PARAM_SLICE, 1.02, 1, 3, 2)
       Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 0.01)", SCRIPT_PARAM_SLICE, .01, .01, 3, 2)
       
     Menu.HitChance:addSubMenu("Harass", "Harass")
-      Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 1.4)", SCRIPT_PARAM_SLICE, 1.4, 1, 3, 2)
-      Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 1.4)", SCRIPT_PARAM_SLICE, 1.4, 1, 3, 2)
+      Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 1.3)", SCRIPT_PARAM_SLICE, 1.3, 1, 3, 2)
+      Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 1.3)", SCRIPT_PARAM_SLICE, 1.3, 1, 3, 2)
       
   Menu:addSubMenu("Combo Settings", "Combo")
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
@@ -360,6 +360,12 @@ function EzrealMenu()
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("Hitchance", "Draw Hitchance", SCRIPT_PARAM_ONOFF, true)
     
+  Menu.Combo.On = false
+  Menu.Harass.On = false
+  Menu.LastHit.On = false
+  Menu.JSteal.On = false
+  Menu.Flee.On = false
+  
 end
 
 ---------------------------------------------------------------------------------
@@ -532,10 +538,30 @@ function Targets()
   STarget = STS.target
 end
 
---[[function OrbReset()
+---------------------------------------------------------------------------------
+
+function OrbwalkCanMove()
 
   if RebornLoaded then
-    _G.AutoCarry.Orbwalker:ResetAttackTimer
+    return _G.AutoCarry.Orbwalker:CanMove()
+  elseif MMALoaded then
+    return _G.MMA_AbleToMove
+  elseif SxOrbLoaded then
+    return SxOrb:CanMove()
+  elseif SOWLoaded then
+    return SOWVP:CanMove()
+    --return SOW:CanMove()
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function OrbReset()
+
+  if RebornLoaded then
+    --_G.AutoCarry.Orbwalker:ResetAttackTimer
+    _G.AutoCarry.MyHero:AttacksEnabled(true)
   elseif RevampedLoaded then
   elseif MMALoaded then
     _G.MMA_ResetAutoAttack()
@@ -546,7 +572,7 @@ end
     --SOW:resetAA()
   end
   
-end]]
+end
 
 ---------------------------------------------------------------------------------
 
@@ -590,8 +616,8 @@ function Combo()
   
     local ComboR = Menu.Combo.R
     local ComboR2 = Menu.Combo.R2
-    local QTargetDmg = Q.ready and GetDmg("Q", RTarget) or 0
-    local WTargetDmg = W.ready and GetDmg("W", RTarget) or 0
+    local QTargetDmg = Q.ready and ValidTarget(RTarget, Q.range+100) and GetDmg("Q", RTarget) or 0
+    local WTargetDmg = W.ready and ValidTarget(RTarget, W.range+100) and GetDmg("W", RTarget) or 0
     local RTargetDmg = GetDmg("R", RTarget)
     
     if R.ready and ValidTarget(RTarget, R.range+100) then
@@ -952,20 +978,6 @@ end
 
 function ManaPercent()
   return (myHero.mana/myHero.maxMana)*100
-end
-
-function OrbwalkCanMove()
-
-  if RebornLoaded then
-    return _G.AutoCarry.Orbwalker:CanMove()
-  elseif MMALoaded then
-    return _G.MMA_AbleToMove
-  elseif SxOrbLoaded then
-    return SxOrb:CanMove()
-  elseif SOWLoaded then
-    return SOWVP:CanMove()
-  end
-  
 end
 
 ---------------------------------------------------------------------------------
@@ -1415,6 +1427,30 @@ function OnAnimation(unit, animation)
     IsRecall = true
   elseif animation == "recall_winddown" or animation == "Run" or animation == "Spell1" or animation == "Spell2" or animation == "Spell3" or animation == "Spell4" then
     IsRecall = false
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function OnProcessSpell(object, spell)
+
+  if spell.target and spell.target.isMe and spell.name == "SummonerExhaust" then
+    --1.5
+  elseif spell.target and spell.target.isMe and spell.name == "Wither" then
+    --1.35
+  end
+  
+  if not object.isMe then
+    return
+  end
+  
+  if spell.name == "EzrealMysticShot" then
+    QWindUpTime = spell.windUpTime
+    DelayAction(OrbReset, QWindUpTime+GetLatency()/2000)
+  elseif spell.name == "EzrealEssenceFlux" then
+    WWindUpTime = spell.windUpTime
+    DelayAction(OrbReset, WWindUpTime+GetLatency()/2000)
   end
   
 end
