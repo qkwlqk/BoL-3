@@ -1,4 +1,4 @@
-local Version = "1.202"
+local Version = "1.203"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -713,7 +713,7 @@ function JSteal()
         return
       end
       
-      local SJunglemobDmg = GetDmg("Smite", junglemob)
+      local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
       
@@ -764,11 +764,11 @@ function JstealAlways()
         return
       end
       
-      local SJunglemobDmg = GetDmg("Smite", junglemob)
+      local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
       
-        if junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1" and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
           CastS(junglemob)
           return
         end
