@@ -1,4 +1,4 @@
-local Version = "1.22"
+local Version = "1.221"
 local AutoUpdate = true
 
 if myHero.charName ~= "Ezreal" then
@@ -361,6 +361,8 @@ function EzrealMenu()
     Menu.Draw:addParam("Hitchance", "Draw Hitchance", SCRIPT_PARAM_ONOFF, true)
     
   Menu.Combo.On = false
+  Menu.Clear.Farm.On = false
+  Menu.Clear.JFarm.On = false
   Menu.Harass.On = false
   Menu.LastHit.On = false
   Menu.JSteal.On = false
