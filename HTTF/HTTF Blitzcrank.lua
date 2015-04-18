@@ -1,4 +1,4 @@
-local Version = "1.203"
+local Version = "1.204"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -344,6 +344,13 @@ function BlitzcrankMenu()
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("Hitchance", "Draw Hitchance", SCRIPT_PARAM_ONOFF, true)
     
+  Menu.Combo.On = false
+  Menu.Clear.JFarm.On = false
+  Menu.Harass.On = false
+  Menu.LastHit.On = false
+  Menu.JSteal.On = false
+  Menu.Flee.On = false
+  
 end
 
 ---------------------------------------------------------------------------------
