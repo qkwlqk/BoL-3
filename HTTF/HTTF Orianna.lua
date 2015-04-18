@@ -1,5 +1,5 @@
 --HTTF Orianna has bug until HPred 1.12 is released.
-local Version = "1.101"
+local Version = "1.102"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -391,6 +391,14 @@ function OriannaMenu()
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("Hitchance", "Draw Hitchance", SCRIPT_PARAM_ONOFF, true)
     
+  Menu.Combo.On = false
+  Menu.Clear.Farm.On = false
+  Menu.Clear.JFarm.On = false
+  Menu.Harass.On = false
+  Menu.LastHit.On = false
+  Menu.JSteal.On = false
+  Menu.Flee.On = false
+  
 end
 
 ---------------------------------------------------------------------------------
@@ -948,7 +956,7 @@ function JSteal()
         return
       end
       
-      local SJunglemobDmg = GetDmg("Smite", junglemob)
+      local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
       
@@ -1043,11 +1051,11 @@ function JstealAlways()
         return
       end
       
-      local SJunglemobDmg = GetDmg("Smite", junglemob)
+      local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
       
-        if junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1" and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
           CastS(junglemob)
           return
         end
@@ -1390,7 +1398,7 @@ function CastR(unit, mode)
   
   RPos, RHitChance, RNoH = HPred:GetPredict("R", unit, Ball, true)
   
-  if mode == "Combo" and (RHitChance >= Menu.HitChance.Combo.R and GetDmg("Q", unit)+GetDmg("R", unit)+GetDmg("R", unit) >= unit.health or RNoH >= Menu.Combo.R3) or mode == nil and RHitChance >= 2 then
+  if mode == "Combo" and (RHitChance >= Menu.HitChance.Combo.R and (Q.ready and GetDmg("Q", unit) or 0)+(W.ready and GetDmg("W", unit) or 0)+GetDmg("R", unit) >= unit.health or RNoH >= Menu.Combo.R3) or mode == nil and RHitChance >= 2 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _R}):send()
