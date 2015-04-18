@@ -1,4 +1,4 @@
-local Version = "1.002"
+local Version = "1.003"
 local AutoUpdate = true
 
 function ScriptMsg(msg)
@@ -210,6 +210,8 @@ function HTTF_Smite:SmiteMenu()
       self.Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     self.Menu.Draw:addParam("Path", "Draw Move Path", SCRIPT_PARAM_ONOFF, false)
     
+  self.Menu.JSteal.On = false
+  
 end
 
 ---------------------------------------------------------------------------------
