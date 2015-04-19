@@ -1,4 +1,4 @@
-local Version = "1.101"
+local Version = "1.102"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -13,7 +13,7 @@ end
 
 ---------------------------------------------------------------------------------
 
-local Host = "raw.github.com"
+--[[local Host = "raw.github.com"
 
 local ScriptFilePath = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 
@@ -47,7 +47,7 @@ if AutoUpdate then
   
 else
   ScriptMsg("AutoUpdate: false")
-end
+end]]
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
@@ -309,6 +309,7 @@ function OriannaMenu()
     
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
+    Menu.JSteal:addParam("On2", "Jungle Steal Toggle", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
       Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
     Menu.JSteal:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
@@ -339,13 +340,6 @@ function OriannaMenu()
     Menu.KillSteal:addParam("S", "Use Stalker's Blade", SCRIPT_PARAM_ONOFF, true)
     end
     
-  if Smite ~= nil then
-  Menu:addSubMenu("AutoCast Settings", "Auto")
-    Menu.Auto:addParam("On", "AutoCast", SCRIPT_PARAM_ONOFF, true)
-      Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Auto:addParam("AutoS", "Use Smite", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
-  end
-  
   Menu:addSubMenu("Flee Settings", "Flee")
     Menu.Flee:addParam("On", "Flee (Only Use KillSteal)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
     
@@ -405,6 +399,10 @@ function OnTick()
   Checks()
   Targets()
   
+  if E.ready and Ball ~= nil and HealthPercent(myHero) <= 20 and not IsRecall then
+    CastEMe()
+  end
+  
   if Menu.Combo.On then
     Combo()
   end
@@ -425,7 +423,7 @@ function OnTick()
     LastHit()
   end
   
-  if Menu.JSteal.On then
+  if Menu.JSteal.On or Menu.JSteal.On2 then
     JSteal()
   end
   
@@ -499,12 +497,7 @@ function Combo()
 
   if QTarget ~= nil then
   
-    local ComboQ = Menu.Combo.Q
-    local ComboQ2 = Menu.Combo.Q2
-    local ComboE = Menu.Combo.E
-    local ComboE2 = Menu.Combo.E2
-    
-    if Q.ready and ComboQ and ComboQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+Q.radius+100) then
+    if Q.ready and ValidTarget(QTarget, Q.range+Q.radius+100) then
       CastQ(QTarget, "Combo")
     end
     
@@ -516,10 +509,7 @@ function Combo()
   
   if WTarget ~= nil then
   
-    local ComboW = Menu.Combo.W
-    local ComboW2 = Menu.Combo.W2
-    
-    if W.ready and ComboW and ComboW2 <= ManaPercent() and ValidTarget(WTarget, W.range+W.radius+100) then
+    if W.ready and ValidTarget(WTarget, W.range+W.radius+100) then
       CastW(WTarget, "Combo")
     end
     
@@ -527,10 +517,7 @@ function Combo()
   
   if ETarget ~= nil then
   
-    local ComboE = Menu.Combo.E
-    local ComboE2 = Menu.Combo.E2
-    
-    if E.ready and ComboE and ComboE2 <= ManaPercent() and ValidTarget(ETarget, E.range+100) then
+    if E.ready and ValidTarget(ETarget, E.range+100) then
       CastE(ETarget)
     end
     
@@ -538,11 +525,28 @@ function Combo()
   
   if RTarget ~= nil then
   
-    local ComboR = Menu.Combo.R
-    local ComboR2 = Menu.Combo.R2
-  
-    if R.ready and ComboR and ComboR2 <= ManaPercent() and ValidTarget(RTarget, R.range+R.radius+100) then
+    if R.ready and ValidTarget(RTarget, R.range+R.radius+100) then
       CastR(RTarget, "Combo")
+    end
+    
+  end
+  
+  for i, enemy in ipairs(EnemyHeroes) do
+  
+    if Q.ready and ValidTarget(enemy, Q.range+Q.radius+100) then
+      CastQ(enemy, "Combo")
+    end
+    
+    if W.ready and ValidTarget(enemy, W.range+W.radius+100) then
+      CastW(enemy, "Combo")
+    end
+    
+    if E.ready and ValidTarget(enemy, E.range+100) then
+      CastE(enemy)
+    end
+    
+    if R.ready and ValidTarget(enemy, R.range+R.radius+100) then
+      CastR(enemy, "Combo")
     end
     
   end
@@ -816,12 +820,7 @@ function Harass()
 
   if QTarget ~= nil then
   
-    local HarassQ = Menu.Harass.Q
-    local HarassQ2 = Menu.Harass.Q2
-    local HarassE = Menu.Harass.E
-    local HarassE2 = Menu.Harass.E2
-    
-    if Q.ready and HarassQ and HarassQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+Q.radius+100) then
+    if Q.ready and ValidTarget(QTarget, Q.range+Q.radius+100) then
       CastQ(QTarget, "Harass")
     end
     
@@ -833,10 +832,7 @@ function Harass()
   
   if WTarget ~= nil then
   
-    local HarassW = Menu.Harass.W
-    local HarassW2 = Menu.Harass.W2
-    
-    if W.ready and HarassW and HarassW2 <= ManaPercent() and ValidTarget(WTarget, W.range+W.radius+100) then
+    if W.ready and ValidTarget(WTarget, W.range+W.radius+100) then
       CastW(WTarget, "Harass")
     end
     
@@ -844,11 +840,24 @@ function Harass()
   
   if ETarget ~= nil then
   
-    local HarassE = Menu.Harass.E
-    local HarassE2 = Menu.Harass.E2
-    
-    if E.ready and HarassE and HarassE2 <= ManaPercent() and ValidTarget(ETarget, E.range+100) then
+    if E.ready and ValidTarget(ETarget, E.range+100) then
       CastE(ETarget)
+    end
+    
+  end
+  
+  for i, enemy in ipairs(EnemyHeroes) do
+  
+    if Q.ready and ValidTarget(enemy, Q.range+Q.radius+100) then
+      CastQ(enemy, "Harass")
+    end
+    
+    if W.ready and ValidTarget(enemy, W.range+W.radius+100) then
+      CastW(enemy, "Harass")
+    end
+    
+    if E.ready and ValidTarget(enemy, E.range+100) then
+      CastE(enemy)
     end
     
   end
@@ -939,7 +948,7 @@ function JSteal()
         return
       end
       
-      local SJunglemobDmg = GetDmg("Smite", junglemob)
+      local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
       
@@ -1034,11 +1043,11 @@ function JstealAlways()
         return
       end
       
-      local SJunglemobDmg = GetDmg("Smite", junglemob)
+      local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
       
-        if junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1" and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
           CastS(junglemob)
           return
         end
@@ -1180,7 +1189,7 @@ function Flee()
     CastSpell(_W)
   end
   
-  if E.ready and Ball ~= nil and HealthPercent(myHero) ~= 100 then
+  if E.ready and Ball ~= nil and (Ball ~= myHero or HealthPercent(myHero) ~= 100) then
     CastSpell(_E, myHero)
   end
   
@@ -1385,7 +1394,7 @@ function CastR(unit, mode)
   
   RPos, RHitChance, RNoH = HPred:GetPredict("R", unit, Ball, true)
   
-  if mode == "Combo" and (RHitChance >= Menu.HitChance.Combo.R and GetDmg("Q", unit)+GetDmg("R", unit)+GetDmg("R", unit) >= unit.health or RNoH >= Menu.Combo.R3) or mode == nil and RHitChance >= 2 then
+  if mode == "Combo" and (RHitChance >= Menu.HitChance.Combo.R and (Q.ready and GetDmg("Q", unit) or 0)+(W.ready and GetDmg("W", unit) or 0)+GetDmg("R", unit) >= unit.health or RNoH >= Menu.Combo.R3) or mode == nil and RHitChance >= 2 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _R}):send()
@@ -1632,7 +1641,7 @@ function OnDraw()
     DrawCircle(myHero.x, myHero.y, myHero.z, I.range, ARGB(0xFF, 0xFF, 0x24, 0x24))
   end
   
-  if Menu.Draw.S and S.ready and (Menu.Auto.On and Menu.Auto.AutoS or Menu.JSteal.On and Menu.JSteal.S) then
+  if Menu.Draw.S and S.ready and (Menu.JSteal.On or Menu.JSteal.On) and Menu.JSteal.S then
     DrawCircle(myHero.x, myHero.y, myHero.z, S.range, ARGB(0xFF, 0xFF, 0x14, 0x93))
   end
   
