@@ -1,4 +1,4 @@
-local Version = "1.221"
+local Version = "1.222"
 local AutoUpdate = true
 
 if myHero.charName ~= "Ezreal" then
@@ -218,12 +218,12 @@ function EzrealMenu()
   
     Menu.HitChance:addSubMenu("Combo", "Combo")
       Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.02)", SCRIPT_PARAM_SLICE, 1.02, 1, 3, 2)
-      Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 1.02)", SCRIPT_PARAM_SLICE, 1.02, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 1.2, 1, 3, 2)
       Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 0.01)", SCRIPT_PARAM_SLICE, .01, .01, 3, 2)
       
     Menu.HitChance:addSubMenu("Harass", "Harass")
-      Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 1.3)", SCRIPT_PARAM_SLICE, 1.3, 1, 3, 2)
-      Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 1.3)", SCRIPT_PARAM_SLICE, 1.3, 1, 3, 2)
+      Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 1.4)", SCRIPT_PARAM_SLICE, 1.4, 1, 3, 2)
+      Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 1.4)", SCRIPT_PARAM_SLICE, 1.4, 1, 3, 2)
       
   Menu:addSubMenu("Combo Settings", "Combo")
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
