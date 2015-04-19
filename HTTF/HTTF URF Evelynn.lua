@@ -1,4 +1,4 @@
-local Version = "1.0"
+local Version = "1.001"
 local AutoUpdate = true
 
 if myHero.charName ~= "Evelynn" then
@@ -241,19 +241,13 @@ function EvelynnMenu()
     
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
+    Menu.JSteal:addParam("On2", "Jungle Steal Toggle", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
       Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("Always", "Always Use Q, E and Smite\n(Baron & Dragon)", SCRIPT_PARAM_ONOFF, true)
     
   Menu:addSubMenu("KillSteal Settings", "KillSteal")
     Menu.KillSteal:addParam("On", "KillSteal", SCRIPT_PARAM_ONOFF, true)
     
-  if Smite ~= nil then
-  Menu:addSubMenu("AutoCast Settings", "Auto")
-    Menu.Auto:addParam("On", "AutoCast", SCRIPT_PARAM_ONOFF, true)
-      Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Auto:addParam("AutoS", "Use Smite", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
-  end
-  
   Menu:addSubMenu("Flee Settings", "Flee")
     Menu.Flee:addParam("On", "Flee (Only Use KillSteal)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
     
@@ -329,7 +323,7 @@ function OnTick()
   
   if Menu.JSteal.Always then
     JstealAlways()
-  elseif Menu.JSteal.On then
+  elseif Menu.JSteal.On or Menu.JSteal.On2 then
     JSteal()
   end
   
@@ -622,7 +616,7 @@ function JSteal()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      local SJunglemobDmg = GetDmg("Smite", junglemob)
+      local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
       
@@ -683,11 +677,11 @@ function JstealAlways()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      local SJunglemobDmg = GetDmg("Smite", junglemob)
+      local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
       
-        if junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1" and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
           CastS(junglemob)
           return
         end
@@ -1097,7 +1091,7 @@ function OnDraw()
     DrawCircle(myHero.x, myHero.y, myHero.z, I.range, ARGB(0xFF, 0xFF, 0x24, 0x24))
   end
   
-  if Menu.Draw.S and S.ready and (Menu.Auto.On and Menu.Auto.AutoS or Menu.JSteal.On) then
+  if Menu.Draw.S and S.ready and (Menu.JSteal.On or Menu.JSteal.On2) then
     DrawCircle(myHero.x, myHero.y, myHero.z, S.range, ARGB(0xFF, 0xFF, 0x14, 0x93))
   end
   
