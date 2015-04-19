@@ -1,6 +1,9 @@
 --https://github.com/LegendBot/Developer_Snippets/blob/master/LevelSpell.lua
 --http://forum.botoflegends.com/topic/52656-levelspell-patch-57vip/
 --(5.5, 5.6)
+-- do not use this
+-- 사용하지 마세요
+
 if not VIP_USER then
   return
 end
