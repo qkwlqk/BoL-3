@@ -1,4 +1,4 @@
-local Version = "1.011"
+local Version = "1.012"
 local AutoUpdate = true
 
 if myHero.charName ~= "Cassiopeia" then
@@ -290,6 +290,7 @@ function CassiopeiaMenu()
     
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
+    Menu.JSteal:addParam("On2", "Jungle Steal Toggle", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
       Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     if Smite ~= nil then
@@ -312,13 +313,6 @@ function CassiopeiaMenu()
     Menu.KillSteal:addParam("S", "Use Stalker's Blade", SCRIPT_PARAM_ONOFF, true)
     end
     
-  if Smite ~= nil then
-  Menu:addSubMenu("AutoCast Settings", "Auto")
-    Menu.Auto:addParam("On", "AutoCast", SCRIPT_PARAM_ONOFF, true)
-      Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Auto:addParam("AutoS", "Use Smite", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
-  end
-  
   Menu:addSubMenu("Flee Settings", "Flee")
     Menu.Flee:addParam("On", "Flee (Only Use KillSteal)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
     
@@ -437,7 +431,7 @@ function OnTick()
   
   Checks()
   Targets()
-	
+  
   if Menu.Combo.On then
     Combo()
   end
@@ -458,7 +452,7 @@ function OnTick()
     LastHit()
   end
   
-  if Menu.JSteal.On then
+  if Menu.JSteal.On or Menu.JSteal.On2 then
     JSteal()
   end
   
@@ -1323,7 +1317,7 @@ function OnDraw()
     DrawCircle(myHero.x, myHero.y, myHero.z, I.range, ARGB(0xFF, 0xFF, 0x24, 0x24))
   end
   
-  if Menu.Draw.S and S.ready and (Menu.Auto.On and Menu.Auto.AutoS or Menu.JSteal.On and Menu.JSteal.S) then
+  if Menu.Draw.S and S.ready and (Menu.JSteal.On or Menu.JSteal.On2) and Menu.JSteal.S then
     DrawCircle(myHero.x, myHero.y, myHero.z, S.range, ARGB(0xFF, 0xFF, 0x14, 0x93))
   end
   
