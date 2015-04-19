@@ -1,12 +1,8 @@
-Version = "1.232"
+Version = "1.24"
 AutoUpdate = true
 
 if myHero.charName ~= "Vladimir" then
   return
-end
-
-if VIP_USER then
-  require 'Prodiction'
 end
 
 require 'SourceLib'
@@ -19,19 +15,6 @@ end
 ----------------------------------------------------------------------------------------------------
 
 Host = "raw.github.com"
-
-ServerPath = "/BolHTTF/BoL/master/Server.status".."?rand="..math.random(1,10000)
-ServerData = GetWebResult(Host, ServerPath)
-
-ScriptMsg("Server check...")
-
-assert(load(ServerData))()
-
-print("<font color=\"#00fa9a\"><b>HTTF Vladimir:</b> </font><font color=\"#FFFFFF\">Server status: </font><font color=\"#ff0000\"><b>"..Server.."</b></font>")
-
-if Server == "Off" then
-  return
-end
 
 ScriptFilePath = SCRIPT_PATH..GetCurrentEnv().FILE_NAME
 
@@ -70,18 +53,6 @@ end
 
 function OnLoad()
 
-  Donator = false
-  
-  if VIP_USER then
-  
-    if Prodiction.IsDonator() then
-      Donator = true
-    else
-      Donator = false
-    end
-    
-  end
-  
   Variables()
   VladimirMenu()
   DelayAction(Orbwalk, 1)
@@ -269,9 +240,9 @@ function VladimirMenu()
 
   Menu = scriptConfig("HTTF Vladimir", "HTTF Vladimir")
   
-  Menu:addSubMenu("Predict Settings", "Predict")
+  --Menu:addSubMenu("Predict Settings", "Predict")
   
-    Menu.Predict:addParam("PdOpt", "Predict Settings (Reload Required)", SCRIPT_PARAM_LIST, 2, { "Prodiction (Only Donator)", "VPrediction"})
+    --Menu.Predict:addParam("PdOpt", "Predict Settings (Reload Required)", SCRIPT_PARAM_LIST, 1, { "HPrediction", "VPrediction"})
     
   Menu:addSubMenu("Combo Settings", "Combo")
   
@@ -284,13 +255,8 @@ function VladimirMenu()
       Menu.Combo:addParam("W2", "Default value = 100", SCRIPT_PARAM_SLICE, 100, 0, 200, 0)
       Menu.Combo:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-      if Donator and Menu.Predict.PdOpt == 1 then
-      Menu.Combo:addParam("Emin", "Use E Min Count (Prodiction)", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
-      Menu.Combo:addParam("Ehit", "Use E Hitchance (Prodiction)", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
-      else
       Menu.Combo:addParam("Emin", "Use E Min Count", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
-      end
-      Menu.Combo:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
+      Menu.Combo:addParam("Info", "Use E if Current Health > Max Health * x%", SCRIPT_PARAM_INFO, "")
       Menu.Combo:addParam("E2", "Default value = 10", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
       Menu.Combo:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use R Combo", SCRIPT_PARAM_ONOFF, true)
@@ -300,12 +266,7 @@ function VladimirMenu()
       Menu.Combo:addParam("DontR", "Do not use R if Killable with Q", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank5", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("AutoR", "Auto R on Combo", SCRIPT_PARAM_ONOFF, true)
-      if Donator and Menu.Predict.PdOpt == 1 then
-      Menu.Combo:addParam("Rmin", "Auto R Min Count (Prodiction)", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
-      Menu.Combo:addParam("Rhit", "Auto R Hitchance (Prodiction)", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
-      else
       Menu.Combo:addParam("Rmin", "Auto R Min Count", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
-      end
       
   Menu:addSubMenu("Clear Settings", "Clear")  
   
@@ -340,12 +301,7 @@ function VladimirMenu()
     Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Harass:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.Harass:addParam("E2", "Default value = 10", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
-      if Donator and Menu.Predict.PdOpt == 1 then
-      Menu.Harass:addParam("Emin", "Use E Min Count (Prodiction)", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
-      Menu.Harass:addParam("Ehit", "Use E Hitchance (Prodiction)", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
-      else
       Menu.Harass:addParam("Emin", "Use E Min Count", SCRIPT_PARAM_SLICE, 1, 1, 5, 0)
-      end
       
   Menu:addSubMenu("LastHit Settings", "LastHit")
   
@@ -378,9 +334,6 @@ function VladimirMenu()
     Menu.KillSteal:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.KillSteal:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-      if Donator and Menu.Predict.PdOpt == 1 then
-      Menu.KillSteal:addParam("Ehit", "Use E Hitchance (Prodiction)", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
-      end
       Menu.KillSteal:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.KillSteal:addParam("E2", "Default value = 5", SCRIPT_PARAM_SLICE, 5, 0, 100, 0)
       Menu.KillSteal:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
@@ -395,24 +348,14 @@ function VladimirMenu()
     Menu.Auto:addParam("AutoE", "Auto E", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Info", "Auto E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.Auto:addParam("E2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
-      if Donator and Menu.Predict.PdOpt == 1 then
-      Menu.Auto:addParam("Emin", "Auto E Min Count (Prodiction)", SCRIPT_PARAM_SLICE, 3, 1, 5, 0)
-      Menu.Auto:addParam("Ehit", "Auto E Hitchance (Prodiction)", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
-      else
       Menu.Auto:addParam("Emin", "Auto E Min Count", SCRIPT_PARAM_SLICE, 3, 1, 5, 0)
-      end
       Menu.Auto:addParam("Blank2", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("StackE", "Stack E (When not Combo, Harass)", SCRIPT_PARAM_ONKEYTOGGLE, false, GetKey('T'))
       Menu.Auto:addParam("Info", "Use E if Current Health > Max health * x%", SCRIPT_PARAM_INFO, "")
       Menu.Auto:addParam("SE2", "Default value = 40", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
       Menu.Auto:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoR", "Auto R", SCRIPT_PARAM_ONOFF, true)
-      if Donator and Menu.Predict.PdOpt == 1 then
-      Menu.Auto:addParam("Rmin", "Auto R Min Count (Prodiction)", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
-      Menu.Auto:addParam("Rhit", "Auto R Hitchance (Prodiction)", SCRIPT_PARAM_SLICE, 2, 1, 3, 0)
-      else
       Menu.Auto:addParam("Rmin", "Auto R Min Count", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
-      end
       Menu.Auto:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
     Menu.Auto:addParam("AutoZ", "Auto Zhonya", SCRIPT_PARAM_ONOFF, true)
       Menu.Auto:addParam("Info", "Auto Zhonya if Current Health < Max health * x%", SCRIPT_PARAM_INFO, "")
@@ -490,22 +433,21 @@ function Orbwalk()
     end
     
   elseif _G.Reborn_Loaded then
-    DelayAction(Orbwalk, 1) 
-    
+    DelayAction(Orbwalk, 1)
   elseif _G.MMA_Loaded then
     MMALoaded = true
     ScriptMsg("Found MMA.")
-    
   elseif FileExist(LIB_PATH .. "SOW.lua") then
+  
     require 'SOW'
+    
     SOWVP = SOW(VP)
     Menu:addSubMenu("Orbwalk Settings (SOW)", "Orbwalk")
       Menu.Orbwalk:addParam("Info", "SOW settings", SCRIPT_PARAM_INFO, "")
       Menu.Orbwalk:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       SOWVP:LoadToMenu(Menu.Orbwalk)
     SOWLoaded = true
-    ScriptMsg("SOW Loaded.")
-    
+    ScriptMsg("Found SOW.")
   else
     ScriptMsg("Orbwalk not founded. Using AllClass TS.")
   end
@@ -554,6 +496,7 @@ function OnTick()
   end
   
   if Pool and Menu.Combo.On then --Will block orb packet later
+    BlockAA(p)
     MoveToMouse()
   end
   
@@ -767,11 +710,36 @@ function Farm()
     local QMinionDmg = getDmg("Q", minion, myHero)
     local EMinionDmg = getDmg("E", minion, myHero) + E.stack*getDmg("E", minion, myHero, 2)
     
-    if E.ready and FarmE and FarmE2 <= HealthPercent and FarmEmin <= MinionCount(minion, E.range) and (EMinionDmg + AAMinionDmg <= minion.health or EMinionDmg >= minion.health) and ValidTarget(minion, E.range) then
+    if E.ready and FarmE and FarmE2 <= HealthPercent and FarmEmin <= MinionCount(minion, E.range) and EMinionDmg >= minion.health and ValidTarget(minion, E.range) then
       CastE()
     end
     
-    if Q.ready and FarmQ and QMinionDmg + AAMinionDmg <= minion.health or QMinionDmg >= minion.health and ValidTarget(minion, Q.range) then
+    if Q.ready and FarmQ and QMinionDmg >= minion.health and ValidTarget(minion, Q.range) then
+      CastQ(minion)
+    end
+    
+  end
+  
+  for i, minion in pairs(EnemyMinions.objects) do
+  
+    if minion == nil or GetDistanceSqr(minion) > QrangeSqr then
+      return
+    end
+    
+    local FarmQ = Menu.Clear.Farm.Q
+    local FarmE = Menu.Clear.Farm.E
+    local FarmE2 = Menu.Clear.Farm.E2
+    local FarmEmin = Menu.Clear.Farm.Emin
+    
+    local AAMinionDmg = getDmg("AD", minion, myHero)
+    local QMinionDmg = getDmg("Q", minion, myHero)
+    local EMinionDmg = getDmg("E", minion, myHero) + E.stack*getDmg("E", minion, myHero, 2)
+    
+    if E.ready and FarmE and FarmE2 <= HealthPercent and FarmEmin <= MinionCount(minion, E.range) and EMinionDmg + 2*AAMinionDmg <= minion.health and ValidTarget(minion, E.range) then
+      CastE()
+    end
+    
+    if Q.ready and FarmQ and QMinionDmg + 2*AAMinionDmg <= minion.health and ValidTarget(minion, Q.range) then
       CastQ(minion)
     end
     
@@ -1315,84 +1283,34 @@ end
 
 function CastE1(enemy, State)
 
-  if Menu.Predict.PdOpt == 1 then
+  local AoECastPosition, MainTargetHitChance, NT = VP:GetCircularAOECastPosition(enemy, E.delay, E.radius, E.range, E.speed, myHero, false)
   
-    local Pos, Info = Prodiction.GetCircularAOEPrediction(enemy, E.range, E.speed, E.delay, E.radius)
-    
-    if State == KillSteal and Pos and Info.hitchance >= Menu.KillSteal.Ehit then
-      CastE()
-    end
-    
-  elseif Menu.Predict.PdOpt == 2 then
-  
-    local AoECastPosition, MainTargetHitChance, NT = VP:GetCircularAOECastPosition(enemy, E.delay, E.radius, E.range, E.speed, myHero, false)
-    
-    if NT >= 1 and MainTargetHitChance >= 2 then
-      CastE()
-    end
-    
+  if NT >= 1 and MainTargetHitChance >= 2 then
+    CastE()
   end
   
 end
 
 function CastE2(enemy, State)
 
-  if Menu.Predict.PdOpt == 1 then
+  local AoECastPosition, MainTargetHitChance, NT = VP:GetCircularAOECastPosition(enemy, E.delay, E.radius, E.range, E.speed, myHero, false)
   
-    if Donator then
-    
-      if State == Combo then
-      
-        local Boolean, Pos, Info = Prodiction.GetMinCountCircularAOEPrediction(Menu.Combo.Emin, E.range, E.speed, E.delay, E.radius)
-        
-        if Boolean and Pos and Info.hitchance >= Menu.Combo.Ehit then
-          CastE()
-        end
-        
-      elseif State == Harass then
-      
-        local Boolean, Pos, Info = Prodiction.GetMinCountCircularAOEPrediction(Menu.Harass.Emin, E.range, E.speed, E.delay, E.radius)
-        
-        if Boolean and Pos and Info.hitchance >= Menu.Harass.Ehit then
-          CastE()
-        end
-        
-      elseif State == Auto then
-      
-        local Boolean, Pos, Info = Prodiction.GetMinCountCircularAOEPrediction(Menu.Auto.Emin, E.range, E.speed, E.delay, E.radius)
-        
-        if Boolean and Pos and Info.hitchance >= Menu.Auto.Ehit then
-          CastE()
-        end
-        
-      end
-      
-    else
-      print("Prodiction Cast E using min count is only for donator.")
+  if State == Combo then
+  
+    if NT >= Menu.Combo.Emin and MainTargetHitChance >= 2 then
+      CastE()
     end
     
-  elseif Menu.Predict.PdOpt == 2 then
+  elseif State == Harass then
   
-    local AoECastPosition, MainTargetHitChance, NT = VP:GetCircularAOECastPosition(enemy, E.delay, E.radius, E.range, E.speed, myHero, false)
+    if NT >= Menu.Harass.Emin and MainTargetHitChance >= 2 then
+      CastE()
+    end
     
-    if State == Combo then
-    
-      if NT >= Menu.Combo.Emin and MainTargetHitChance >= 2 then
-        CastE()
-      end
-      
-    elseif State == Harass then
-    
-      if NT >= Menu.Harass.Emin and MainTargetHitChance >= 2 then
-        CastE()
-      end
-      
-    elseif State == Auto then
-    
-      if NT >= Menu.Auto.Emin and MainTargetHitChance >= 2 then
-        CastE()
-      end
-      
+  elseif State == Auto then
+  
+    if NT >= Menu.Auto.Emin and MainTargetHitChance >= 2 then
+      CastE()
     end
     
   end
@@ -1413,65 +1331,29 @@ end
 
 function CastR2(enemy, State)
 
-  if Menu.Predict.PdOpt == 1 then
+  local AoECastPosition, MainTargetHitChance, NT = VP:GetCircularAOECastPosition(enemy, R.delay, R.radius, R.range, R.speed, myHero, false)
   
-    if Donator then
+  if State == Combo and not BlockComboR then
+  
+    if NT >= Menu.Combo.Rmin then
     
-      if State == Combo and not BlockComboR then
-      
-        local Boolean, Pos, Info = Prodiction.GetMinCountCircularAOEPrediction(Menu.Combo.Rmin, R.range, R.speed, R.delay, R.radius)
-        
-        if Boolean and Pos and Info.hitchance >= Menu.Combo.Rhit then
-          CastR(Pos)
-        end
-        
-      elseif State == Auto then
-      
-        local Boolean, Pos, Info = Prodiction.GetMinCountCircularAOEPrediction(Menu.Auto.Rmin, R.range, R.speed, R.delay, R.radius)
-        
-        if Boolean then
-          BlockComboR = true
-        end
-        
-        if Boolean and Pos and Info.hitchance >= Menu.Auto.Rhit then
-          CastR(Pos)
-        end
-        
-        BlockComboR = false
-        
+      if MainTargetHitChance >= 2 then
+        CastR(AoECastPosition)
       end
       
-    else
-      print("Prodiction Cast E using min count is only for donator.")
     end
     
-  elseif Menu.Predict.PdOpt == 2 then
+  elseif State == Auto then
   
-    local AoECastPosition, MainTargetHitChance, NT = VP:GetCircularAOECastPosition(enemy, R.delay, R.radius, R.range, R.speed, myHero, false)
+    if NT >= Menu.Auto.Rmin then
     
-    if State == Combo and not BlockComboR then
-    
-      if NT >= Menu.Combo.Rmin then
+      BlockComboR = true
       
-        if MainTargetHitChance >= 2 then
-          CastR(AoECastPosition)
-        end
-        
+      if MainTargetHitChance >= 2 then
+        CastR(AoECastPosition)
       end
       
-    elseif State == Auto then
-    
-      if NT >= Menu.Auto.Rmin then
-      
-        BlockComboR = true
-        
-        if MainTargetHitChance >= 2 then
-          CastR(AoECastPosition)
-        end
-        
-        BlockComboR = false
-        
-      end
+      BlockComboR = false
       
     end
     
@@ -1483,10 +1365,6 @@ end
 
 function CastI(enemy)
 
-  if Ignite == nil then
-    return
-  end
-  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Ignite, targetNetworkId = enemy.networkID}):send()
   else
@@ -1499,10 +1377,6 @@ end
 
 function CastS(enemy)
 
-  if Smite == nil then
-    return
-  end
-  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
   else
@@ -1516,11 +1390,7 @@ end
 
 function MoveToPos(x, z)
 
-  if VIP_USER and Menu.Misc.UsePacket then
-    Packet("S_MOVE", {x, z}):send()
-  else
-    myHero:MoveTo(x, z)
-  end
+  myHero:MoveTo(x, z)
   
 end
 
@@ -1530,32 +1400,13 @@ function MoveToMouse()
     MousePos = myHero + (Vector(mousePos) - myHero):normalized()*300
   end
   
-  if VIP_USER and Menu.Misc.UsePacket then
-    Packet("S_MOVE", {MousePos.x, MousePos.z}):send()
-  else
-    myHero:MoveTo(MousePos.x, MousePos.z)
-  end
-  
-end
-
-----------------------------------------------------------------------------------------------------
-
-function OnAnimation(unit, animation)
-
-  if unit.isMe then
-  
-    if animation == "Idle1" then
-      BeingAA = false
-      CanAA = true
-    end
-    
-  end
+  myHero:MoveTo(MousePos.x, MousePos.z)
   
 end
 
 ---------------------------------------------------------------------------------
 
-function OnGainBuff(unit, buff)
+--[[function OnGainBuff(unit, buff)
 
   if unit.isMe then
   
@@ -1588,7 +1439,7 @@ function OnLoseBuff(unit, buff)
     
   end
   
-end
+end]]
 
 ---------------------------------------------------------------------------------
 
@@ -1614,12 +1465,10 @@ function OnSendPacket(p)
     return
   end
   
-  if E.ready and Menu.Combo.On then
-  
-    if Menu.Combo.E2 <= HealthPercent then
-      BlockAA(p)
-    end
-    
+  if Menu.Combo.On and E.ready and Menu.Combo.E2 <= HealthPercent then
+    BlockAA(p)
+  elseif Menu.Harass.On and E.ready and Menu.Harass.E2 <= HealthPercent then
+    BlockAA(p)
   end
   
 end
