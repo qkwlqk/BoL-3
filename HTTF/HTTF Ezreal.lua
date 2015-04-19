@@ -1,4 +1,4 @@
-local Version = "1.222"
+local Version = "1.223"
 local AutoUpdate = true
 
 if myHero.charName ~= "Ezreal" then
@@ -364,6 +364,7 @@ function EzrealMenu()
   Menu.Clear.Farm.On = false
   Menu.Clear.JFarm.On = false
   Menu.Harass.On = false
+  Menu.Harass.On2 = false
   Menu.LastHit.On = false
   Menu.JSteal.On = false
   Menu.Flee.On = false
