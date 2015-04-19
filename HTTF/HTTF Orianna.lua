@@ -1,4 +1,4 @@
-local Version = "1.103"
+local Version = "1.104"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -1638,7 +1638,7 @@ function OnDraw()
     DrawCircle(myHero.x, myHero.y, myHero.z, I.range, ARGB(0xFF, 0xFF, 0x24, 0x24))
   end
   
-  if Menu.Draw.S and S.ready and (Menu.JSteal.On or Menu.JSteal.On) and Menu.JSteal.S then
+  if Menu.Draw.S and S.ready and (Menu.JSteal.On or Menu.JSteal.On2) and Menu.JSteal.S then
     DrawCircle(myHero.x, myHero.y, myHero.z, S.range, ARGB(0xFF, 0xFF, 0x14, 0x93))
   end
   
