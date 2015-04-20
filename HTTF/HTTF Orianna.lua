@@ -1,4 +1,4 @@
-local Version = "1.104"
+local Version = "1.11"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -216,7 +216,7 @@ function OriannaMenu()
     Menu.HitChance:addSubMenu("Combo", "Combo")
       Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.6)", SCRIPT_PARAM_SLICE, 1.6, 1, 3, 2)
       Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
-      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 1, 3, 2)
       
     Menu.HitChance:addSubMenu("Harass", "Harass")
       Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
@@ -237,15 +237,17 @@ function OriannaMenu()
     Menu.Combo:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, true)
-    Menu.Combo:addParam("Info", "Use R if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("R2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    Menu.Combo:addParam("R", "Use Smart R (Single Target)", SCRIPT_PARAM_ONOFF, true)
+    Menu.Combo:addParam("R2", "Use R (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("R3", "Use R Min Count (Default = 3)", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
+    Menu.Combo:addParam("Info", "Use R if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
+    Menu.Combo:addParam("R3", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Combo:addParam("R4", "Use R Min Count (Default = 3)", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("BRK", "Use BRK if my own HP < x%", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
-    
+      
   Menu:addSubMenu("Clear Settings", "Clear")
   
     Menu.Clear:addSubMenu("Lane Clear Settings", "Farm")
@@ -541,9 +543,18 @@ function Combo()
   
     local ComboR = Menu.Combo.R
     local ComboR2 = Menu.Combo.R2
-  
-    if R.ready and ComboR and ComboR2 <= ManaPercent() and ValidTarget(RTarget, R.range+R.radius+100) then
-      CastR(RTarget, "Combo")
+    local ComboR3 = Menu.Combo.R3
+    
+    local QRTargetDmg = Q.ready and GetDmg("Q", RTarget) or 0
+    local WRTargetDmg = W.ready and GetDmg("W", RTarget) or 0
+    local RRTargetDmg = GetDmg("R", RTarget)
+    
+    if R.ready and ComboR and ComboR3 <= ManaPercent() and QRTargetDmg+WRTargetDmg+RRTargetDmg >= RTarget.health and ValidTarget(RTarget, R.range+R.radius+100) then
+      CastR(RTarget, "ComboS")
+    end
+    
+    if R.ready and ComboR2 and ComboR3 <= ManaPercent() and ValidTarget(RTarget, R.range+R.radius+100) then
+      CastR(RTarget, "ComboM")
     end
     
   end
@@ -1391,7 +1402,7 @@ function CastR(unit, mode)
   
   RPos, RHitChance, RNoH = HPred:GetPredict("R", unit, Ball, true)
   
-  if mode == "Combo" and (RHitChance >= Menu.HitChance.Combo.R and (Q.ready and GetDmg("Q", unit) or 0)+(W.ready and GetDmg("W", unit) or 0)+GetDmg("R", unit) >= unit.health or RNoH >= Menu.Combo.R3) or mode == nil and RHitChance >= 2 then
+  if mode == "ComboS" and RHitChance >= Menu.HitChance.Combo.R or mode == "ComboM" and RNoH >= Menu.Combo.R4 or mode == nil and RHitChance >= 3 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _R}):send()
