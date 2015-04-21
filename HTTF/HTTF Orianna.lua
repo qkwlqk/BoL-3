@@ -1,4 +1,4 @@
-local Version = "1.203"
+local Version = "1.204"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -253,7 +253,7 @@ function OriannaMenu()
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("W2", "Default value = 80", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
+      Menu.Clear.Farm:addParam("W2", "Default value = 50", SCRIPT_PARAM_SLICE, 50, 0, 100, 0)
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
@@ -328,7 +328,7 @@ function OriannaMenu()
       Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.KillSteal:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, true)
+    Menu.KillSteal:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, false)
     if Ignite ~= nil then
       Menu.KillSteal:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     Menu.KillSteal:addParam("I", "Use Ignite", SCRIPT_PARAM_ONOFF, true)
@@ -1454,7 +1454,7 @@ function CastW(unit, mode)
   
   WPos, WHitChance = HPred:GetPredict("W", unit, Ball)
   
-  if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 2 then
+  if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 3 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _W}):send()
