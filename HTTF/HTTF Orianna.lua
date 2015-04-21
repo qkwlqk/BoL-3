@@ -1,4 +1,4 @@
-local Version = "1.21"
+local Version = "1.211"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -259,7 +259,7 @@ function OriannaMenu()
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("E2", "Default value = 80", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
+      Menu.Clear.Farm:addParam("E2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
         
     Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
       Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
@@ -570,7 +570,7 @@ function Combo()
       
     end
     
-    if Ball ~= nil and Q.ready and E.ready and ComboQ and ComboE and ComboQ2+ComboE2 <= ManaPercent() and GetDistance(QTarget, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QTarget, myHero)/1200 then
+    if Ball ~= nil and Q.ready and E.ready and ComboQ and ComboE and ComboQ2+ComboE2 <= ManaPercent() and .95*GetDistance(QTarget, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QTarget, myHero)/1200 then
       CastEMe()
     end
     
@@ -776,6 +776,14 @@ function JFarm()
         
       end
       
+      if LargeJunglemob ~= nil then
+      
+        if Ball ~= nil and E.ready and JFarmE and JFarmQ2+JFarmE2 <= ManaPercent() and .95*GetDistance(LargeJunglemob, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(LargeJunglemob, myHero)/1200 then
+          CastEMe()
+        end
+        
+      end
+      
       if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= Q.range+Q.radius and ValidTarget(LargeJunglemob, Q.range+Q.radius) then
         CastQ(LargeJunglemob)
         return
@@ -787,6 +795,10 @@ function JFarm()
     
       if ValidTarget(junglemob, Q.range+Q.radius) then
         CastQ(junglemob)
+      end
+      
+      if Ball ~= nil and E.ready and JFarmE and JFarmQ2+JFarmE2 <= ManaPercent() and .95*GetDistance(junglemob, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(junglemob, myHero)/1200 then
+        CastEMe()
       end
       
     end
@@ -1058,7 +1070,7 @@ function Harass()
       
     end
     
-    if Ball ~= nil and QHitChance ~= nil and QHitChance >= Menu.HitChance.Harass.Q and Q.ready and E.ready and HarassQ and HarassE and HarassQ2+HarassE2 <= ManaPercent() and GetDistance(QTarget, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QTarget, myHero)/1200 then
+    if Ball ~= nil and QHitChance ~= nil and QHitChance >= Menu.HitChance.Harass.Q and Q.ready and E.ready and HarassQ and HarassE and HarassQ2+HarassE2 <= ManaPercent() and .95*GetDistance(QTarget, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QTarget, myHero)/1200 then
       CastEMe()
     end
     
