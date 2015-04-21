@@ -1,4 +1,4 @@
-local Version = "1.201"
+local Version = "1.202"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -229,7 +229,7 @@ function OriannaMenu()
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     Menu.Combo:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("E2", "Default value = 20", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
+    Menu.Combo:addParam("E2", "Default value = 10", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use Smart R (Single Target)", SCRIPT_PARAM_ONOFF, true)
     Menu.Combo:addParam("R2", "Use R (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
@@ -249,15 +249,15 @@ function OriannaMenu()
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("Q2", "Default value = 60", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
+      Menu.Clear.Farm:addParam("Q2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("W2", "Default value = 65", SCRIPT_PARAM_SLICE, 65, 0, 100, 0)
+      Menu.Clear.Farm:addParam("W2", "Default value = 80", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("E2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
+      Menu.Clear.Farm:addParam("E2", "Default value = 80", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
         
     Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
       Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
@@ -297,13 +297,13 @@ function OriannaMenu()
       Menu.LastHit:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.LastHit:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
     Menu.LastHit:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.LastHit:addParam("Q2", "Default value = 80", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
+    Menu.LastHit:addParam("Q2", "Default value = 90", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
     Menu.LastHit:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
     Menu.LastHit:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.LastHit:addParam("W2", "Default value = 85", SCRIPT_PARAM_SLICE, 85, 0, 100, 0)
-    Menu.LastHit:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+    Menu.LastHit:addParam("W2", "Default value = 95", SCRIPT_PARAM_SLICE, 95, 0, 100, 0)
+    Menu.LastHit:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, false)
     Menu.LastHit:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.LastHit:addParam("E2", "Default value = 90", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
+    Menu.LastHit:addParam("E2", "Default value = 100", SCRIPT_PARAM_SLICE, 100, 0, 100, 0)
     
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
@@ -563,8 +563,10 @@ function Combo()
   
   for i, enemy in ipairs(EnemyHeroes) do
   
-    local QenemyDmg = Q.ready and GetDmg("Q", enemy) or 0
-    local WenemyDmg = W.ready and GetDmg("W", enemy) or 0
+    --[[local QenemyDmg = Q.ready and GetDmg("Q", enemy) or 0
+    local WenemyDmg = W.ready and GetDmg("W", enemy) or 0]]
+    local QenemyDmg = GetDmg("Q", enemy)
+    local WenemyDmg = GetDmg("W", enemy)
     local RenemyDmg = GetDmg("R", enemy)
     
     if R.ready and ComboR and ComboR3 <= ManaPercent() and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and ValidTarget(enemy, R.range+R.radius) then
@@ -1822,7 +1824,7 @@ function OnCreateObj(object)
     return
   end
   
-  if object.name == "TheDoomBall" and object.team == myHero.team then
+  if object.name == "TheDoomBall" then
     Ball = object
   end
   
