@@ -1,4 +1,4 @@
-local Version = "1.204"
+local Version = "1.21"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -56,6 +56,7 @@ function OnLoad()
 
   Variables()
   OriannaMenu()
+  DelayAction(Orbwalk, 1)
   
 end
 
@@ -64,6 +65,7 @@ function Variables()
   HPred = HPrediction()
   
   Ball = myHero
+  RebornLoaded, RevampedLoaded, MMALoaded, SxOrbLoaded, SOWLoaded = false, false, false, false, false
   
   if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
     Ignite = SUMMONER_1
@@ -387,6 +389,57 @@ function OriannaMenu()
   Menu.LastHit.On = false
   Menu.JSteal.On = false
   Menu.Flee.On = false
+  
+end
+
+---------------------------------------------------------------------------------
+
+function Orbwalk()
+
+  if _G.AutoCarry then
+  
+    if _G.Reborn_Initialised then
+      RebornLoaded = true
+      ScriptMsg("Found SAC: Reborn.")
+    else
+      RevampedLoaded = true
+      ScriptMsg("Found SAC: Revamped.")
+    end
+    
+  elseif _G.Reborn_Loaded then
+    DelayAction(Orbwalk, 1)
+  elseif _G.MMA_Loaded then
+    MMALoaded = true
+    ScriptMsg("Found MMA.")
+  elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
+  
+    require 'SxOrbWalk'
+    
+    SxOrbMenu = scriptConfig("SxOrb Settings", "SxOrb")
+    
+    SxOrb = SxOrbWalk()
+    SxOrb:LoadToMenu(SxOrbMenu)
+    
+    SxOrbLoaded = true
+    ScriptMsg("Found SxOrb.")
+  elseif FileExist(LIB_PATH .. "SOW.lua") then
+  
+    require 'SOW'
+    require 'VPrediction'
+    
+    VP = VPrediction()
+    SOWVP = SOW(VP)
+    
+    Menu:addSubMenu("Orbwalk Settings (SOW)", "Orbwalk")
+      Menu.Orbwalk:addParam("Info", "SOW settings", SCRIPT_PARAM_INFO, "")
+      Menu.Orbwalk:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      SOWVP:LoadToMenu(Menu.Orbwalk)
+      
+    SOWLoaded = true
+    ScriptMsg("Found SOW.")
+  else
+    ScriptMsg("Orbwalk not founded.")
+  end
   
 end
 
