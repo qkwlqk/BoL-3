@@ -1,4 +1,4 @@
-local Version = "1.202"
+local Version = "1.203"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -1407,29 +1407,13 @@ function GetDmg(spell, enemy)
   elseif spell == "AA" then
     ADDmg = TotalDmg
   elseif spell == "Q" then
-  
-    if Q.ready then
-      APDmg = 30*Q.level+30+.5*AP
-    end
-    
+    APDmg = 30*Q.level+30+.5*AP
   elseif spell == "W" then
-  
-    if W.ready then
-      APDmg = 45*W.level+25+.7*AP
-    end
-    
+    APDmg = 45*W.level+25+.7*AP
   elseif spell == "E" then
-  
-    if E.ready then
-      ADDmg = 30*E.level+30+.3*AP
-    end
-    
+    ADDmg = 30*E.level+30+.3*AP
   elseif spell == "R" then
-  
-    if R.ready then
-      APDmg = 75*R.level+75+.7*AP
-    end
-    
+    APDmg = 75*R.level+75+.7*AP
   end
   
   local TrueDmg = ADDmg*(1-ArmorPercent)+APDmg*(1-MagicArmorPercent)
