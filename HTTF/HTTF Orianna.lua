@@ -1,4 +1,4 @@
-local Version = "1.2"
+local Version = "1.201"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -275,7 +275,7 @@ function OriannaMenu()
       Menu.Clear.JFarm:addParam("E2", "Default value = 10", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
       
     Menu.Clear:addSubMenu("All Clear Settings", "All")
-      Menu.Clear.All:addParam("On", "All Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('Z'))
+      Menu.Clear.All:addParam("On", "All Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('T'))
       
   Menu:addSubMenu("Harass Settings", "Harass")
     Menu.Harass:addParam("On", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
