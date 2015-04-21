@@ -1,4 +1,4 @@
-local Version = "1.11"
+local Version = "1.2"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -80,22 +80,18 @@ function Variables()
   Q = {range = 825, radius = 175, speed = 1200, ready}
   W = {range = 1250, radius = 225, ready}
   E = {range = 1250, speed = 1800, width = 80, ready}
-  R = {range = 1250, radius = 410, ready} --delay = .5
+  R = {range = 1250, radius = 410, ready}
   I = {range = 600, ready}
   S = {range = 760, ready}
   
   AddRange = GetDistance(myHero.minBBox)/2
   TrueRange = myHero.range+AddRange
   
-  QTargetRange = Q.range+Q.radius+100
-  WTargetRange = W.range+W.radius+100
-  ETargetRange = E.range+100
-  RTargetRange = R.range+R.radius+100
+  QTargetRange = Q.range+Q.radius
+  ETargetRange = E.range
   
-  QMinionRange = Q.range+Q.radius+100
-  QJunglemobRange = Q.range+Q.radius+100
-  WMinionRange = W.range+W.radius+100
-  WJunglemobRange = W.range+W.radius+100
+  QMinionRange = Q.range+Q.radius
+  QJunglemobRange = Q.range+Q.radius
   
   Items =
   {
@@ -194,9 +190,7 @@ function Variables()
   end
   
   QTS = TargetSelector(TARGET_LESS_CAST, QTargetRange, DAMAGE_MAGIC, false)
-  WTS = TargetSelector(TARGET_LESS_CAST, WTargetRange, DAMAGE_MAGIC, false)
   ETS = TargetSelector(TARGET_LESS_CAST, ETargetRange, DAMAGE_MAGIC, false)
-  RTS = TargetSelector(TARGET_LESS_CAST, RTargetRange, DAMAGE_MAGIC, false)
   STS = TargetSelector(TARGET_LOW_HP, S.range)
   
   EnemyHeroes = GetEnemyHeroes()
@@ -215,12 +209,12 @@ function OriannaMenu()
   
     Menu.HitChance:addSubMenu("Combo", "Combo")
       Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.6)", SCRIPT_PARAM_SLICE, 1.6, 1, 3, 2)
-      Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
-      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 2, 3, 2)
+      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
       
     Menu.HitChance:addSubMenu("Harass", "Harass")
       Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
-      Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 1, 3, 2)
+      Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
       
   Menu:addSubMenu("Combo Settings", "Combo")
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
@@ -255,15 +249,15 @@ function OriannaMenu()
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("Q2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
+      Menu.Clear.Farm:addParam("Q2", "Default value = 60", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("W2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
+      Menu.Clear.Farm:addParam("W2", "Default value = 65", SCRIPT_PARAM_SLICE, 65, 0, 100, 0)
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("E2", "Default value = 80", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
+      Menu.Clear.Farm:addParam("E2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
         
     Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
       Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
@@ -278,7 +272,10 @@ function OriannaMenu()
         Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.JFarm:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.JFarm:addParam("E2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
+      Menu.Clear.JFarm:addParam("E2", "Default value = 10", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
+      
+    Menu.Clear:addSubMenu("All Clear Settings", "All")
+      Menu.Clear.All:addParam("On", "All Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('Z'))
       
   Menu:addSubMenu("Harass Settings", "Harass")
     Menu.Harass:addParam("On", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
@@ -293,7 +290,7 @@ function OriannaMenu()
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     Menu.Harass:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("E2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
+    Menu.Harass:addParam("E2", "Default value = 80", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
     
   Menu:addSubMenu("LastHit Settings", "LastHit")
     Menu.LastHit:addParam("On", "LastHit", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
@@ -303,7 +300,7 @@ function OriannaMenu()
     Menu.LastHit:addParam("Q2", "Default value = 80", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
     Menu.LastHit:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
     Menu.LastHit:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.LastHit:addParam("W2", "Default value = 80", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
+    Menu.LastHit:addParam("W2", "Default value = 85", SCRIPT_PARAM_SLICE, 85, 0, 100, 0)
     Menu.LastHit:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     Menu.LastHit:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
     Menu.LastHit:addParam("E2", "Default value = 90", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
@@ -353,15 +350,11 @@ function OriannaMenu()
   
     Menu.Draw:addSubMenu("Draw Target", "Target")
       Menu.Draw.Target:addParam("Q", "Draw Q Target", SCRIPT_PARAM_ONOFF, true)
-      Menu.Draw.Target:addParam("W", "Draw W Target", SCRIPT_PARAM_ONOFF, false)
       Menu.Draw.Target:addParam("E", "Draw E Target", SCRIPT_PARAM_ONOFF, false)
-      Menu.Draw.Target:addParam("R", "Draw R Target", SCRIPT_PARAM_ONOFF, false)
       
     Menu.Draw:addSubMenu("Draw Predicted Position", "PP")
       Menu.Draw.PP:addParam("Q", "Draw Q Pos", SCRIPT_PARAM_ONOFF, true)
-      Menu.Draw.PP:addParam("W", "Draw W Pos", SCRIPT_PARAM_ONOFF, false)
       Menu.Draw.PP:addParam("E", "Draw E Line", SCRIPT_PARAM_ONOFF, false)
-      Menu.Draw.PP:addParam("R", "Draw R Pos", SCRIPT_PARAM_ONOFF, false)
       Menu.Draw.PP:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Draw.PP:addParam("Line", "Draw Line to Pos", SCRIPT_PARAM_ONOFF, true)
       
@@ -389,6 +382,7 @@ function OriannaMenu()
   Menu.Combo.On = false
   Menu.Clear.Farm.On = false
   Menu.Clear.JFarm.On = false
+  Menu.Clear.All.On = false
   Menu.Harass.On = false
   Menu.LastHit.On = false
   Menu.JSteal.On = false
@@ -418,6 +412,10 @@ function OnTick()
   
   if Menu.Clear.JFarm.On then
     JFarm()
+  end
+  
+  if Menu.Clear.All.On then
+    All()
   end
   
   if Menu.Harass.On then
@@ -483,15 +481,11 @@ end
 function Targets()
 
   QTS:update()
-  WTS:update()
   ETS:update()
-  RTS:update()
   STS:update()
   
   QTarget = QTS.target
-  WTarget = WTS.target
   ETarget = ETS.target
-  RTarget = RTS.target
   STarget = STS.target
   
 end
@@ -507,23 +501,35 @@ function Combo()
     local ComboE = Menu.Combo.E
     local ComboE2 = Menu.Combo.E2
     
-    if Q.ready and ComboQ and ComboQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+Q.radius+100) then
-      CastQ(QTarget, "Combo")
+    if Q.ready and ComboQ and ComboQ2 <= ManaPercent() then
+    
+      if ValidTarget(QTarget, Q.range+Q.radius) then
+        CastQ(QTarget, "Combo")
+      end
+      
+      for i, enemy in ipairs(EnemyHeroes) do
+      
+        if ValidTarget(enemy, Q.range+Q.radius) then
+          CastQ(enemy, "Combo")
+        end
+        
+      end
+      
     end
     
-    if Ball ~= nil and QPos ~= nil and Q.ready and E.ready and ComboQ and ComboE and ComboQ2+ComboE2 <= ManaPercent() and GetDistance(QPos, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QPos, myHero)/1200 then
+    if Ball ~= nil and Q.ready and E.ready and ComboQ and ComboE and ComboQ2+ComboE2 <= ManaPercent() and GetDistance(QTarget, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QTarget, myHero)/1200 then
       CastEMe()
     end
     
   end
   
-  if WTarget ~= nil then
+  local ComboW = Menu.Combo.W
+  local ComboW2 = Menu.Combo.W2
   
-    local ComboW = Menu.Combo.W
-    local ComboW2 = Menu.Combo.W2
-    
-    if W.ready and ComboW and ComboW2 <= ManaPercent() and ValidTarget(WTarget, W.range+W.radius+100) then
-      CastW(WTarget, "Combo")
+  for i, enemy in ipairs(EnemyHeroes) do
+  
+    if W.ready and ComboW and ComboW2 <= ManaPercent() and ValidTarget(enemy, W.range+W.radius) then
+      CastW(enemy, "Combo")
     end
     
   end
@@ -533,28 +539,40 @@ function Combo()
     local ComboE = Menu.Combo.E
     local ComboE2 = Menu.Combo.E2
     
-    if E.ready and ComboE and ComboE2 <= ManaPercent() and ValidTarget(ETarget, E.range+100) then
-      CastE(ETarget)
+    if E.ready and ComboE and ComboE2 <= ManaPercent() then
+    
+      if ValidTarget(ETarget, E.range) then
+        CastE(ETarget)
+      end
+      
+      for i, enemy in ipairs(EnemyHeroes) do
+      
+        if ValidTarget(enemy, E.range) then
+          CastE(enemy)
+        end
+        
+      end
+      
     end
     
   end
   
-  if RTarget ~= nil then
+  local ComboR = Menu.Combo.R
+  local ComboR2 = Menu.Combo.R2
+  local ComboR3 = Menu.Combo.R3
   
-    local ComboR = Menu.Combo.R
-    local ComboR2 = Menu.Combo.R2
-    local ComboR3 = Menu.Combo.R3
+  for i, enemy in ipairs(EnemyHeroes) do
+  
+    local QenemyDmg = Q.ready and GetDmg("Q", enemy) or 0
+    local WenemyDmg = W.ready and GetDmg("W", enemy) or 0
+    local RenemyDmg = GetDmg("R", enemy)
     
-    local QRTargetDmg = Q.ready and GetDmg("Q", RTarget) or 0
-    local WRTargetDmg = W.ready and GetDmg("W", RTarget) or 0
-    local RRTargetDmg = GetDmg("R", RTarget)
-    
-    if R.ready and ComboR and ComboR3 <= ManaPercent() and QRTargetDmg+WRTargetDmg+RRTargetDmg >= RTarget.health and ValidTarget(RTarget, R.range+R.radius+100) then
-      CastR(RTarget, "ComboS")
+    if R.ready and ComboR and ComboR3 <= ManaPercent() and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and ValidTarget(enemy, R.range+R.radius) then
+      CastR(enemy, "ComboS")
     end
     
-    if R.ready and ComboR2 and ComboR3 <= ManaPercent() and ValidTarget(RTarget, R.range+R.radius+100) then
-      CastR(RTarget, "ComboM")
+    if R.ready and ComboR2 and ComboR3 <= ManaPercent() and ValidTarget(enemy, R.range+R.radius) then
+      CastR(enemy, "ComboM")
     end
     
   end
@@ -604,13 +622,9 @@ function Farm()
     
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local QMinionDmg = .7*GetDmg("Q", minion)
       
-      if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius+100) then
+      if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius) then
         CastQ(minion)
       end
       
@@ -618,14 +632,10 @@ function Farm()
     
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local AAMinionDmg = GetDmg("AA", minion)
       local QMinionDmg = GetDmg("Q", minion)
       
-      if QMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, Q.range+Q.radius+100) then
+      if QMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, Q.range+Q.radius) then
         CastQ(minion)
       end
       
@@ -637,13 +647,9 @@ function Farm()
     
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local WMinionDmg = GetDmg("W", minion)
       
-      if WMinionDmg >= minion.health and ValidTarget(minion, W.range+W.radius+100) then
+      if WMinionDmg >= minion.health and ValidTarget(minion, W.range+W.radius) then
         CastW(minion)
       end
       
@@ -651,14 +657,10 @@ function Farm()
     
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local AAMinionDmg = GetDmg("AA", minion)
       local WMinionDmg = GetDmg("W", minion)
       
-      if WMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, W.range+W.radius+100) then
+      if WMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, W.range+W.radius) then
         CastW(minion)
       end
       
@@ -670,13 +672,9 @@ function Farm()
     
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local EMinionDmg = GetDmg("E", minion)
       
-      if EMinionDmg >= minion.health and ValidTarget(minion, E.range+100) then
+      if EMinionDmg >= minion.health and ValidTarget(minion, E.range) then
         CastE(minion)
       end
       
@@ -684,14 +682,10 @@ function Farm()
     
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local AAMinionDmg = GetDmg("AA", minion)
       local EMinionDmg = GetDmg("E", minion)
       
-      if EMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, E.range+100) then
+      if EMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, E.range) then
         CastE(minion)
       end
       
@@ -716,13 +710,10 @@ function JFarm()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local LargeJunglemob = nil
       
       for j = 1, #FocusJungleNames do
+      
         if junglemob.name == FocusJungleNames[j] then
           LargeJunglemob = junglemob
           break
@@ -730,7 +721,7 @@ function JFarm()
         
       end
       
-      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= Q.range+Q.radius and ValidTarget(LargeJunglemob, Q.range+Q.radius+100) then
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= Q.range+Q.radius and ValidTarget(LargeJunglemob, Q.range+Q.radius) then
         CastQ(LargeJunglemob)
         return
       end
@@ -739,11 +730,7 @@ function JFarm()
     
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
-      if ValidTarget(junglemob, Q.range+Q.radius+100) then
+      if ValidTarget(junglemob, Q.range+Q.radius) then
         CastQ(junglemob)
       end
       
@@ -755,13 +742,10 @@ function JFarm()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local LargeJunglemob = nil
       
       for j = 1, #FocusJungleNames do
+      
         if junglemob.name == FocusJungleNames[j] then
           LargeJunglemob = junglemob
           break
@@ -769,7 +753,7 @@ function JFarm()
         
       end
       
-      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= W.range+W.radius and ValidTarget(LargeJunglemob, W.range+W.radius+100) then
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= W.range+W.radius and ValidTarget(LargeJunglemob, W.range+W.radius) then
         CastW(LargeJunglemob)
         return
       end
@@ -778,11 +762,7 @@ function JFarm()
     
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
-      if ValidTarget(junglemob, W.range+W.radius+100) then
+      if ValidTarget(junglemob, W.range+W.radius) then
         CastW(junglemob)
       end
       
@@ -794,13 +774,10 @@ function JFarm()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local LargeJunglemob = nil
       
       for j = 1, #FocusJungleNames do
+      
         if junglemob.name == FocusJungleNames[j] then
           LargeJunglemob = junglemob
           break
@@ -808,7 +785,7 @@ function JFarm()
         
       end
       
-      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= E.range and ValidTarget(LargeJunglemob, E.range+100) then
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= E.range and ValidTarget(LargeJunglemob, E.range) then
         CastE(LargeJunglemob)
         return
       end
@@ -817,11 +794,174 @@ function JFarm()
     
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
+      if ValidTarget(junglemob, E.range) then
+        CastE(junglemob)
+      end
+      
+    end
+    
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function All()
+
+  MoveToMouse()
+  
+  if Q.ready then
+  
+    for i, minion in pairs(EnemyMinions.objects) do
+    
+      local QMinionDmg = .7*GetDmg("Q", minion)
+      
+      if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius) then
+        CastQ(minion)
+      end
+      
+    end
+    
+    for i, minion in pairs(EnemyMinions.objects) do
+    
+      local AAMinionDmg = GetDmg("AA", minion)
+      local QMinionDmg = GetDmg("Q", minion)
+      
+      if QMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, Q.range+Q.radius) then
+        CastQ(minion)
+      end
+      
+    end
+  
+    for i, junglemob in pairs(JungleMobs.objects) do
+    
+      local LargeJunglemob = nil
+      
+      for j = 1, #FocusJungleNames do
+      
+        if junglemob.name == FocusJungleNames[j] then
+          LargeJunglemob = junglemob
+          break
+        end
+        
+      end
+      
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= Q.range+Q.radius and ValidTarget(LargeJunglemob, Q.range+Q.radius) then
+        CastQ(LargeJunglemob)
         return
       end
       
-      if ValidTarget(junglemob, E.range+100) then
+    end
+    
+    for i, junglemob in pairs(JungleMobs.objects) do
+    
+      if ValidTarget(junglemob, Q.range+Q.radius) then
+        CastQ(junglemob)
+      end
+      
+    end
+    
+  end
+  
+  if W.ready then
+  
+    for i, minion in pairs(EnemyMinions.objects) do
+    
+      local WMinionDmg = GetDmg("W", minion)
+      
+      if WMinionDmg >= minion.health and ValidTarget(minion, W.range+W.radius) then
+        CastW(minion)
+      end
+      
+    end
+    
+    for i, minion in pairs(EnemyMinions.objects) do
+    
+      local AAMinionDmg = GetDmg("AA", minion)
+      local WMinionDmg = GetDmg("W", minion)
+      
+      if WMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, W.range+W.radius) then
+        CastW(minion)
+      end
+      
+    end
+    
+    for i, junglemob in pairs(JungleMobs.objects) do
+    
+      local LargeJunglemob = nil
+      
+      for j = 1, #FocusJungleNames do
+      
+        if junglemob.name == FocusJungleNames[j] then
+          LargeJunglemob = junglemob
+          break
+        end
+        
+      end
+      
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= W.range+W.radius and ValidTarget(LargeJunglemob, W.range+W.radius) then
+        CastW(LargeJunglemob)
+        return
+      end
+      
+    end
+    
+    for i, junglemob in pairs(JungleMobs.objects) do
+    
+      if ValidTarget(junglemob, W.range+W.radius) then
+        CastW(junglemob)
+      end
+      
+    end
+    
+  end
+  
+  if E.ready then
+  
+    for i, minion in pairs(EnemyMinions.objects) do
+    
+      local EMinionDmg = GetDmg("E", minion)
+      
+      if EMinionDmg >= minion.health and ValidTarget(minion, E.range) then
+        CastE(minion)
+      end
+      
+    end
+    
+    for i, minion in pairs(EnemyMinions.objects) do
+    
+      local AAMinionDmg = GetDmg("AA", minion)
+      local EMinionDmg = GetDmg("E", minion)
+      
+      if EMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, E.range) then
+        CastE(minion)
+      end
+      
+    end
+    
+    for i, junglemob in pairs(JungleMobs.objects) do
+    
+      local LargeJunglemob = nil
+      
+      for j = 1, #FocusJungleNames do
+      
+        if junglemob.name == FocusJungleNames[j] then
+          LargeJunglemob = junglemob
+          break
+        end
+        
+      end
+      
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= E.range and ValidTarget(LargeJunglemob, E.range) then
+        CastE(LargeJunglemob)
+        return
+      end
+      
+    end
+    
+    for i, junglemob in pairs(JungleMobs.objects) do
+    
+      if ValidTarget(junglemob, E.range) then
         CastE(junglemob)
       end
       
@@ -842,23 +982,40 @@ function Harass()
     local HarassE = Menu.Harass.E
     local HarassE2 = Menu.Harass.E2
     
-    if Q.ready and HarassQ and HarassQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+Q.radius+100) then
-      CastQ(QTarget, "Harass")
+    if Q.ready and HarassQ and HarassQ2 <= ManaPercent() then
+      QHitChance = nil
+      
+      if ValidTarget(QTarget, Q.range+Q.radius) then
+        CastQ(QTarget, "Harass")
+      end
+      
+      if QHitChance == 0 then
+      
+        for i, enemy in ipairs(EnemyHeroes) do
+        
+          if ValidTarget(enemy, Q.range+Q.radius) then
+            CastQ(QTarget, "Harass")
+          end
+          
+        end
+        
+      end
+      
     end
     
-    if Ball ~= nil and QPos ~= nil and QHitChance ~= nil and QHitChance >= Menu.HitChance.Harass.Q and Q.ready and E.ready and HarassQ and HarassE and HarassQ2+HarassE2 <= ManaPercent() and GetDistance(QPos, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QPos, myHero)/1200 then
+    if Ball ~= nil and QHitChance ~= nil and QHitChance >= Menu.HitChance.Harass.Q and Q.ready and E.ready and HarassQ and HarassE and HarassQ2+HarassE2 <= ManaPercent() and GetDistance(QTarget, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QTarget, myHero)/1200 then
       CastEMe()
     end
     
   end
   
-  if WTarget ~= nil then
+  local HarassW = Menu.Harass.W
+  local HarassW2 = Menu.Harass.W2
   
-    local HarassW = Menu.Harass.W
-    local HarassW2 = Menu.Harass.W2
-    
-    if W.ready and HarassW and HarassW2 <= ManaPercent() and ValidTarget(WTarget, W.range+W.radius+100) then
-      CastW(WTarget, "Harass")
+  for i, enemy in ipairs(EnemyHeroes) do
+  
+    if W.ready and HarassW and HarassW2 <= ManaPercent() and ValidTarget(enemy, W.range+W.radius) then
+      CastW(enemy, "Harass")
     end
     
   end
@@ -868,8 +1025,25 @@ function Harass()
     local HarassE = Menu.Harass.E
     local HarassE2 = Menu.Harass.E2
     
-    if E.ready and HarassE and HarassE2 <= ManaPercent() and ValidTarget(ETarget, E.range+100) then
-      CastE(ETarget)
+    if E.ready and HarassE and HarassE2 <= ManaPercent() then
+      EHitChance = nil
+      
+      if ValidTarget(ETarget, E.range) then
+        CastE(ETarget)
+      end
+      
+      if EHitChance == 0 then
+      
+        for i, enemy in ipairs(EnemyHeroes) do
+        
+          if ValidTarget(enemy, E.range) then
+            CastE(enemy)
+          end
+          
+        end
+        
+      end
+      
     end
     
   end
@@ -891,13 +1065,9 @@ function LastHit()
   
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local QMinionDmg = .7*GetDmg("Q", minion)
       
-      if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius+100) then
+      if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius) then
         CastQ(minion)
       end
       
@@ -909,13 +1079,9 @@ function LastHit()
   
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local WMinionDmg = GetDmg("W", minion)
       
-      if WMinionDmg >= minion.health and ValidTarget(minion, W.range+W.radius+100) then
+      if WMinionDmg >= minion.health and ValidTarget(minion, W.range+W.radius) then
         CastW(minion)
       end
       
@@ -927,13 +1093,9 @@ function LastHit()
   
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local EMinionDmg = GetDmg("E", minion)
       
-      if EMinionDmg >= minion.health and ValidTarget(minion, E.range+100) then
+      if EMinionDmg >= minion.health and ValidTarget(minion, E.range) then
         CastE(minion)
       end
       
@@ -955,11 +1117,7 @@ function JSteal()
   if S.ready and JStealS then
   
     for i, junglemob in pairs(JungleMobs.objects) do
-    
-      if junglemob == nil then
-        return
-      end
-      
+          
       local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
@@ -979,15 +1137,11 @@ function JSteal()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local QJunglemobDmg = .8*GetDmg("Q", junglemob)
       
       for j = 1, #FocusJungleNames do
       
-        if junglemob.name == FocusJungleNames[j] and QJunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.range+Q.radius+100) then
+        if junglemob.name == FocusJungleNames[j] and QJunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.range+Q.radius) then
           CastQ(junglemob)
         end
         
@@ -1001,15 +1155,11 @@ function JSteal()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local WJunglemobDmg = GetDmg("W", junglemob)
       
       for j = 1, #FocusJungleNames do
       
-        if junglemob.name == FocusJungleNames[j] and WJunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.range+W.radius+100) then
+        if junglemob.name == FocusJungleNames[j] and WJunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.range+W.radius) then
           CastW(junglemob)
         end
         
@@ -1023,15 +1173,11 @@ function JSteal()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local EJunglemobDmg = GetDmg("E", junglemob)
       
       for j = 1, #FocusJungleNames do
       
-        if junglemob.name == FocusJungleNames[j] and EJunglemobDmg >= junglemob.health and ValidTarget(junglemob, E.range+100) then
+        if junglemob.name == FocusJungleNames[j] and EJunglemobDmg >= junglemob.health and ValidTarget(junglemob, E.range) then
           CastE(junglemob)
         end
         
@@ -1051,10 +1197,6 @@ function JstealAlways()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
@@ -1074,15 +1216,11 @@ function JstealAlways()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local QJunglemobDmg = GetDmg("Q", junglemob)
       
       for j = 1, #FocusJungleNames do
       
-        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and QJunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.range+Q.radius+100) then
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and QJunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.range+Q.radius) then
           CastQ(junglemob)
         end
         
@@ -1096,15 +1234,11 @@ function JstealAlways()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local WJunglemobDmg = GetDmg("W", junglemob)
       
       for j = 1, #FocusJungleNames do
       
-        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and WJunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.range+W.radius+100) then
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and WJunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.range+W.radius) then
           CastW(junglemob)
         end
         
@@ -1118,15 +1252,11 @@ function JstealAlways()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local EJunglemobDmg = GetDmg("E", junglemob)
       
       for j = 1, #FocusJungleNames do
       
-        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and EJunglemobDmg >= junglemob.health and ValidTarget(junglemob, E.range+100) then
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and EJunglemobDmg >= junglemob.health and ValidTarget(junglemob, E.range) then
           CastE(junglemob)
         end
         
@@ -1151,39 +1281,35 @@ function KillSteal()
   
   for i, enemy in ipairs(EnemyHeroes) do
   
-    if enemy == nil then
-       return
-    end
+    local QenemyDmg = .7*GetDmg("Q", enemy)
+    local WenemyDmg = GetDmg("W", enemy)
+    local EenemyDmg = GetDmg("E", enemy)
+    local RenemyDmg = GetDmg("R", enemy)
+    local IenemyDmg = GetDmg("IGNITE", enemy)
+    local SBenemyDmg = GetDmg("STALKER", enemy)
     
-    local QTargetDmg = .7*GetDmg("Q", enemy)
-    local WTargetDmg = GetDmg("W", enemy)
-    local ETargetDmg = GetDmg("E", enemy)
-    local RTargetDmg = GetDmg("R", enemy)
-    local ITargetDmg = GetDmg("IGNITE", enemy)
-    local SBTargetDmg = GetDmg("STALKER", enemy)
-    
-    if I.ready and KillStealI and ITargetDmg >= enemy.health and ValidTarget(enemy, I.range) then
+    if I.ready and KillStealI and IenemyDmg >= enemy.health and ValidTarget(enemy, I.range) then
       CastI(enemy)
     end
     
-    if Items["Stalker"].ready and KillStealS and SBTargetDmg >= enemy.health and ValidTarget(enemy, S.range) then
+    if Items["Stalker"].ready and KillStealS and SBenemyDmg >= enemy.health and ValidTarget(enemy, S.range) then
       CastS(enemy)
       return
     end
     
-    if Q.ready and KillStealQ and QTargetDmg >= enemy.health and ValidTarget(enemy, Q.range+Q.radius+100) then
+    if Q.ready and KillStealQ and QenemyDmg >= enemy.health and ValidTarget(enemy, Q.range+Q.radius) then
       CastQ(enemy)
     end
     
-    if W.ready and KillStealW and WTargetDmg >= enemy.health and ValidTarget(enemy, W.range+W.radius+100) then
+    if W.ready and KillStealW and WenemyDmg >= enemy.health and ValidTarget(enemy, W.range+W.radius) then
       CastW(enemy)
     end
     
-    if E.ready and KillStealE and ETargetDmg >= enemy.health and ValidTarget(enemy, E.range+100) then
+    if E.ready and KillStealE and EenemyDmg >= enemy.health and ValidTarget(enemy, E.range) then
       CastE(enemy)
     end
     
-    if R.ready and KillStealR and RTargetDmg >= enemy.health and ValidTarget(enemy, R.range+R.radius+100) then
+    if R.ready and KillStealR and RenemyDmg >= enemy.health and ValidTarget(enemy, R.range+R.radius) then
       CastR(enemy)
     end
     
@@ -1314,7 +1440,7 @@ end
 
 function CastQ(unit, mode)
 
-  if Ball == nil then
+  if unit.dead or Ball == nil then
     return
   end
   
@@ -1336,7 +1462,7 @@ end
 
 function CastW(unit, mode)
 
-  if Ball == nil then
+  if unit.dead or Ball == nil then
     return
   end
   
@@ -1358,7 +1484,7 @@ end
 
 function CastE(unit)
 
-  if Ball == nil or Ball == myHero then
+  if unit.dead or Ball == nil or Ball == myHero then
     return
   end
   
@@ -1380,10 +1506,6 @@ end
 
 function CastEMe()
 
-  if Ball == nil then
-    return
-  end
-  
   if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = _E, targetNetworkId = myHero.networkID}):send()
   else
@@ -1489,16 +1611,8 @@ function OnDraw()
     DrawCircle(QTarget.x, QTarget.y, QTarget.z, Q.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
-  if Menu.Draw.Target.W and WTarget ~= nil then
-    DrawCircle(WTarget.x, WTarget.y, WTarget.z, W.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
-  end
-  
   if Menu.Draw.Target.E and ETarget ~= nil then
     DrawCircle(ETarget.x, ETarget.y, ETarget.z, E.width/2, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
-  end
-  
-  if Menu.Draw.Target.R and RTarget ~= nil then
-    DrawCircle(RTarget.x, RTarget.y, RTarget.z, R.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
   if QHitChance ~= nil then
@@ -1566,30 +1680,8 @@ function OnDraw()
       QPos = nil
     end
     
-    if Menu.Draw.PP.W and WPos ~= nil then
-    
-      DrawCircle(WPos.x, WPos.y, WPos.z, W.radius, Wcolor)
-      
-      if Menu.Draw.PP.Line then
-        DrawLine3D(Ball.x, Ball.y, Ball.z, WPos.x, WPos.y, WPos.z, 2, Wcolor)
-      end
-      
-      WPos = nil
-    end
-    
     if Menu.Draw.PP.E and EHit ~= nil then
       DrawLine3D(Ball.x, Ball.y, Ball.z, myHero.x, myHero.y, myHero.z, 2, Ecolor)
-    end
-    
-    if Menu.Draw.PP.R and RPos ~= nil then
-    
-      DrawCircle(RPos.x, RPos.y, RPos.z, R.radius, Rcolor)
-      
-      if Menu.Draw.PP.Line then
-        DrawLine3D(Ball.x, Ball.y, Ball.z, RPos.x, RPos.y, RPos.z, 2, Rcolor)
-      end
-      
-      RPos = nil
     end
     
   end
