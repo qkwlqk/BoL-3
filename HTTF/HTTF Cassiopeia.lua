@@ -210,11 +210,11 @@ function CassiopeiaMenu()
   Menu:addSubMenu("HitChance Settings", "HitChance")
   
     Menu.HitChance:addSubMenu("Combo", "Combo")
-      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 1.2, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
       Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 1, 3, 2)
       
     Menu.HitChance:addSubMenu("Harass", "Harass")
-      Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
+      Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2.4)", SCRIPT_PARAM_SLICE, 2.4, 1, 3, 2)
       Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 1, 3, 2)
       
   Menu:addSubMenu("Combo Settings", "Combo")
