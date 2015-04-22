@@ -1,4 +1,4 @@
-local Version = "1.211"
+local Version = "1.212"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -616,10 +616,8 @@ function Combo()
   
   for i, enemy in ipairs(EnemyHeroes) do
   
-    --[[local QenemyDmg = Q.ready and GetDmg("Q", enemy) or 0
-    local WenemyDmg = W.ready and GetDmg("W", enemy) or 0]]
-    local QenemyDmg = GetDmg("Q", enemy)
-    local WenemyDmg = GetDmg("W", enemy)
+    local QenemyDmg = Q.ready and GetDmg("Q", enemy) or 0
+    local WenemyDmg = W.ready and GetDmg("W", enemy) or 0
     local RenemyDmg = GetDmg("R", enemy)
     
     if R.ready and ComboR and ComboR3 <= ManaPercent() and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and ValidTarget(enemy, R.range+R.radius) then
@@ -776,12 +774,8 @@ function JFarm()
         
       end
       
-      if LargeJunglemob ~= nil then
-      
-        if Ball ~= nil and E.ready and JFarmE and JFarmQ2+JFarmE2 <= ManaPercent() and .95*GetDistance(LargeJunglemob, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(LargeJunglemob, myHero)/1200 then
-          CastEMe()
-        end
-        
+      if LargeJunglemob ~= nil amd Ball ~= nil and E.ready and JFarmE and JFarmQ2+JFarmE2 <= ManaPercent() and .95*GetDistance(LargeJunglemob, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(LargeJunglemob, myHero)/1200 then
+        CastEMe()
       end
       
       if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= Q.range+Q.radius and ValidTarget(LargeJunglemob, Q.range+Q.radius) then
@@ -797,7 +791,7 @@ function JFarm()
         CastQ(junglemob)
       end
       
-      if Ball ~= nil and E.ready and JFarmE and JFarmQ2+JFarmE2 <= ManaPercent() and .95*GetDistance(junglemob, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(junglemob, myHero)/1200 then
+      if junglemob ~= nil and Ball ~= nil and E.ready and JFarmE and JFarmQ2+JFarmE2 <= ManaPercent() and .95*GetDistance(junglemob, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(junglemob, myHero)/1200 then
         CastEMe()
       end
       
@@ -1497,6 +1491,10 @@ function CastQ(unit, mode)
   
   QPos, QHitChance = HPred:GetPredict("Q", unit, Ball)
   
+  if QPos == nil then
+    return
+  end
+  
   if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1 then
   
     if VIP_USER and Menu.Misc.UsePacket then
@@ -1518,6 +1516,10 @@ function CastW(unit, mode)
   end
   
   WPos, WHitChance = HPred:GetPredict("W", unit, Ball)
+  
+  if WPos == nil then
+    return
+  end
   
   if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 3 then
   
@@ -1569,11 +1571,15 @@ end
 
 function CastR(unit, mode)
 
-  if Ball == nil then
+  if unit.dead or Ball == nil then
     return
   end
   
   RPos, RHitChance, RNoH = HPred:GetPredict("R", unit, Ball, true)
+  
+  if RPos == nil then
+    return
+  end
   
   if mode == "ComboS" and RHitChance >= Menu.HitChance.Combo.R or mode == "ComboM" and RNoH >= Menu.Combo.R4 or mode == nil and RHitChance >= 3 then
   
