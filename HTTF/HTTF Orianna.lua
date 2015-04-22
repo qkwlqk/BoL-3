@@ -1,4 +1,4 @@
-local Version = "1.212"
+local Version = "1.213"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -774,7 +774,7 @@ function JFarm()
         
       end
       
-      if LargeJunglemob ~= nil amd Ball ~= nil and E.ready and JFarmE and JFarmQ2+JFarmE2 <= ManaPercent() and .95*GetDistance(LargeJunglemob, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(LargeJunglemob, myHero)/1200 then
+      if LargeJunglemob ~= nil and Ball ~= nil and E.ready and JFarmE and JFarmQ2+JFarmE2 <= ManaPercent() and .95*GetDistance(LargeJunglemob, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(LargeJunglemob, myHero)/1200 then
         CastEMe()
       end
       
