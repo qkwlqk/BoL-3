@@ -1,4 +1,4 @@
-local Version = "1.012"
+local Version = "1.013"
 local AutoUpdate = true
 
 if myHero.charName ~= "Cassiopeia" then
@@ -210,7 +210,7 @@ function CassiopeiaMenu()
   Menu:addSubMenu("HitChance Settings", "HitChance")
   
     Menu.HitChance:addSubMenu("Combo", "Combo")
-      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 1.2, 1, 3, 2)
       Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 1, 3, 2)
       
     Menu.HitChance:addSubMenu("Harass", "Harass")
@@ -323,7 +323,7 @@ function CassiopeiaMenu()
   end
     Menu.Misc:addParam("E", "Use E even if minion isn't poisoned", SCRIPT_PARAM_ONOFF, false)
     Menu.Misc:addParam("Info", "Use E if Mana Percent < x%", SCRIPT_PARAM_INFO, "")
-    Menu.Misc:addParam("E2", "Default value = 50", SCRIPT_PARAM_SLICE, 50, 5, 100, 0)
+    Menu.Misc:addParam("E2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 5, 100, 0)
     
   Menu:addSubMenu("Draw Settings", "Draw")
   
