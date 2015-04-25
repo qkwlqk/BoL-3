@@ -1,4 +1,4 @@
-local Version = "1.22"
+local Version = "1.221"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -1517,7 +1517,7 @@ function CastQ(unit, mode)
   
   if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1 then
   
-    if Menu.Misc.UsePacket then
+    if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
     else
       CastSpell(_Q, QPos.x, QPos.z)
@@ -1539,7 +1539,7 @@ function CastW(unit, mode)
   
   if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 3 then
   
-    if Menu.Misc.UsePacket then
+    if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _W}):send()
     else
       CastSpell(_W)
@@ -1561,7 +1561,7 @@ function CastE(unit)
   
   if EHit then
   
-    if Menu.Misc.UsePacket then
+    if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _E, targetNetworkId = myHero.networkID}):send()
     else
       CastSpell(_E, myHero)
@@ -1575,7 +1575,7 @@ end
 
 function CastEMe()
 
-  if Menu.Misc.UsePacket then
+  if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = _E, targetNetworkId = myHero.networkID}):send()
   else
     CastSpell(_E, myHero)
@@ -1595,7 +1595,7 @@ function CastR(unit, mode)
   
   if mode == "ComboS" and RHitChance >= Menu.HitChance.Combo.R or mode == "ComboM" and RNoH >= Menu.Combo.R4 or mode == nil and RHitChance >= 3 then
   
-    if Menu.Misc.UsePacket then
+    if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _R}):send()
     else
       CastSpell(_R)
@@ -1609,7 +1609,7 @@ end
 
 function CastI(enemy)
 
-  if Menu.Misc.UsePacket then
+  if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Ignite, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Ignite, enemy)
@@ -1621,7 +1621,7 @@ end
 
 function CastS(enemy)
 
-  if Menu.Misc.UsePacket then
+  if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Smite, enemy)
@@ -1633,7 +1633,7 @@ end
 
 function CastBC(enemy)
 
-  if Menu.Misc.UsePacket then
+  if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["BC"].slot, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Items["BC"].slot, enemy)
@@ -1645,7 +1645,7 @@ end
 
 function CastBRK(enemy)
 
-  if Menu.Misc.UsePacket then
+  if VIP_USER and Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["BRK"].slot, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Items["BRK"].slot, enemy)
