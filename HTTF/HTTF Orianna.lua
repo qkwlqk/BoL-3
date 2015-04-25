@@ -1,4 +1,4 @@
-local Version = "1.213"
+local Version = "1.22"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -233,6 +233,8 @@ function OriannaMenu()
     Menu.Combo:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E2", "Default value = 10", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Combo:addParam("E3", "Use E if Enemy is near my Hero", SCRIPT_PARAM_ONOFF, true)
+      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use Smart R (Single Target)", SCRIPT_PARAM_ONOFF, true)
     Menu.Combo:addParam("R2", "Use R (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
@@ -255,11 +257,11 @@ function OriannaMenu()
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("W2", "Default value = 50", SCRIPT_PARAM_SLICE, 50, 0, 100, 0)
+      Menu.Clear.Farm:addParam("W2", "Default value = 40", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       Menu.Clear.Farm:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("E2", "Default value = 70", SCRIPT_PARAM_SLICE, 70, 0, 100, 0)
+      Menu.Clear.Farm:addParam("E2", "Default value = 50", SCRIPT_PARAM_SLICE, 50, 0, 100, 0)
         
     Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
       Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
@@ -292,7 +294,10 @@ function OriannaMenu()
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     Menu.Harass:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("E2", "Default value = 80", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
+    Menu.Harass:addParam("E2", "Default value = 60", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
+      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Harass:addParam("Info", "Use E if Health Percent < x%\nor Enemy is near my Hero", SCRIPT_PARAM_INFO, "")
+    Menu.Harass:addParam("E3", "Use E if Enemy is near my Hero", SCRIPT_PARAM_ONOFF, false)
     
   Menu:addSubMenu("LastHit Settings", "LastHit")
     Menu.LastHit:addParam("On", "LastHit", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
@@ -591,8 +596,9 @@ function Combo()
   
     local ComboE = Menu.Combo.E
     local ComboE2 = Menu.Combo.E2
+    local ComboE3 = Menu.Combo.E3
     
-    if E.ready and ComboE and ComboE2 <= ManaPercent() then
+    if E.ready and ComboE and ComboE2 <= ManaPercent() and (not ComboE3 or ComboE3 and EnemyHeroesCount(600) ~= 0) then
     
       if ValidTarget(ETarget, E.range) then
         CastE(ETarget)
@@ -616,7 +622,7 @@ function Combo()
   
   for i, enemy in ipairs(EnemyHeroes) do
   
-    local QenemyDmg = Q.ready and GetDmg("Q", enemy) or 0
+    local QenemyDmg = Q.ready and 2*GetDmg("Q", enemy) or GetDmg("Q", enemy)
     local WenemyDmg = W.ready and GetDmg("W", enemy) or 0
     local RenemyDmg = GetDmg("R", enemy)
     
@@ -1085,8 +1091,9 @@ function Harass()
   
     local HarassE = Menu.Harass.E
     local HarassE2 = Menu.Harass.E2
+    local HarassE3 = Menu.Harass.E3
     
-    if E.ready and HarassE and HarassE2 <= ManaPercent() then
+    if E.ready and HarassE and HarassE2 <= ManaPercent() and (not HarassE3 or HarassE3 and EnemyHeroesCount(600) ~= 0) then
       EHitChance = nil
       
       if ValidTarget(ETarget, E.range) then
@@ -1392,6 +1399,23 @@ end
 
 ---------------------------------------------------------------------------------
 
+function EnemyHeroesCount(range)
+
+  local count = 0
+  
+  for i, enemy in ipairs(EnemyHeroes) do
+  
+    if enemy ~= nil and ValidTarget(enemy, range) then
+      count = count + 1
+    end
+    
+  end
+  
+  return count
+end
+
+---------------------------------------------------------------------------------
+
 function HealthPercent(unit)
   return (unit.health/unit.maxHealth)*100
 end
@@ -1491,13 +1515,9 @@ function CastQ(unit, mode)
   
   QPos, QHitChance = HPred:GetPredict("Q", unit, Ball)
   
-  if QPos == nil then
-    return
-  end
-  
   if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1 then
   
-    if VIP_USER and Menu.Misc.UsePacket then
+    if Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
     else
       CastSpell(_Q, QPos.x, QPos.z)
@@ -1517,13 +1537,9 @@ function CastW(unit, mode)
   
   WPos, WHitChance = HPred:GetPredict("W", unit, Ball)
   
-  if WPos == nil then
-    return
-  end
-  
   if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 3 then
   
-    if VIP_USER and Menu.Misc.UsePacket then
+    if Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _W}):send()
     else
       CastSpell(_W)
@@ -1545,7 +1561,7 @@ function CastE(unit)
   
   if EHit then
   
-    if VIP_USER and Menu.Misc.UsePacket then
+    if Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _E, targetNetworkId = myHero.networkID}):send()
     else
       CastSpell(_E, myHero)
@@ -1559,7 +1575,7 @@ end
 
 function CastEMe()
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = _E, targetNetworkId = myHero.networkID}):send()
   else
     CastSpell(_E, myHero)
@@ -1577,13 +1593,9 @@ function CastR(unit, mode)
   
   RPos, RHitChance, RNoH = HPred:GetPredict("R", unit, Ball, true)
   
-  if RPos == nil then
-    return
-  end
-  
   if mode == "ComboS" and RHitChance >= Menu.HitChance.Combo.R or mode == "ComboM" and RNoH >= Menu.Combo.R4 or mode == nil and RHitChance >= 3 then
   
-    if VIP_USER and Menu.Misc.UsePacket then
+    if Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _R}):send()
     else
       CastSpell(_R)
@@ -1597,7 +1609,7 @@ end
 
 function CastI(enemy)
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Ignite, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Ignite, enemy)
@@ -1609,7 +1621,7 @@ end
 
 function CastS(enemy)
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Smite, enemy)
@@ -1621,7 +1633,7 @@ end
 
 function CastBC(enemy)
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["BC"].slot, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Items["BC"].slot, enemy)
@@ -1633,7 +1645,7 @@ end
 
 function CastBRK(enemy)
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  if Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = Items["BRK"].slot, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(Items["BRK"].slot, enemy)
