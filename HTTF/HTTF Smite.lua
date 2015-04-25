@@ -1,4 +1,4 @@
-local Version = "1.003"
+local Version = "1.004"
 local AutoUpdate = true
 
 function ScriptMsg(msg)
@@ -183,8 +183,8 @@ end
 function HTTF_Smite:SmiteMenu()
 
   if self.Smite == nil then
-	  DelayAction(function() print("\n\n\n\n")
-	  ScriptMsg("You don't have Smite\n\n\n") end, 2)
+    DelayAction(function() print("\n\n\n\n")
+    ScriptMsg("You don't have Smite\n\n\n") end, 2)
     return
   end
   
@@ -375,7 +375,7 @@ end
 
 function HTTF_Smite:CastS(enemy)
 
-  if self.Menu.Misc.UsePacket then
+  if VIP_USER and self.Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = self.Smite, targetNetworkId = enemy.networkID}):send()
   else
     CastSpell(self.Smite, enemy)
@@ -389,9 +389,9 @@ end
 function HTTF_Smite:Draw()
 
   if self.Smite == nil then
-	  return
-	end
-	
+    return
+  end
+  
   if not self.Menu.Draw.On or myHero.dead then
     return
   end
