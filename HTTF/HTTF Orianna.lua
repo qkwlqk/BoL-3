@@ -1,3 +1,4 @@
+--HPrediction by HTTF(Hup two three four)
 local Version = "1.222"
 local AutoUpdate = true
 
@@ -1926,3 +1927,4 @@ function OnProcessSpell(unit, spell)
   end
   
 end
+--Extra line for easy copy
