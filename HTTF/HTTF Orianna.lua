@@ -1,4 +1,4 @@
-local Version = "1.221"
+local Version = "1.222"
 local AutoUpdate = true
 
 if myHero.charName ~= "Orianna" then
@@ -203,6 +203,37 @@ end
 
 ---------------------------------------------------------------------------------
 
+function BlockR(unit)
+
+  if VIP_USER and Menu.Misc.BlockR and Packet(unit):get('spellId') == _R and not RHit() then
+    unit:Block()
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function RHit()
+
+  if Ball ~= nil then
+  
+    for i, enemy in ipairs(EnemyHeroes) do
+    
+      local RPos, RHitChance, RNoH = HPred:GetPredict("R", enemy, Ball, true)
+      
+      if RNoH > 0 then
+        return true
+      end
+      
+    end
+    
+  end
+  
+  return false
+end
+
+---------------------------------------------------------------------------------
+
 function OriannaMenu()
 
   Menu = scriptConfig("HTTF Orianna", "HTTF Orianna")
@@ -222,29 +253,22 @@ function OriannaMenu()
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-    Menu.Combo:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("Q2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    Menu.Combo:addParam("Q2", "Use Q if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-    Menu.Combo:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("W2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    Menu.Combo:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-    Menu.Combo:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("E2", "Default value = 10", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("E3", "Use E if Enemy is near my Hero", SCRIPT_PARAM_ONOFF, true)
+    Menu.Combo:addParam("E2", "Use E if Mana Percent > x% (10)", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
+    Menu.Combo:addParam("E3", "Use E if Enemy is near my Hero (true)", SCRIPT_PARAM_ONOFF, true)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("R", "Use Smart R (Single Target)", SCRIPT_PARAM_ONOFF, true)
     Menu.Combo:addParam("R2", "Use R (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("Info", "Use R if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("R3", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("R4", "Use R Min Count (Default = 3)", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
+    Menu.Combo:addParam("R3", "Use R if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    Menu.Combo:addParam("R4", "Use R Min Count (3)", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
       Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("BRK", "Use BRK if my own HP < x%", SCRIPT_PARAM_SLICE, 20, 0, 100, 0)
+      Menu.Combo:addParam("BRK", "Use BRK if my own HP < x% (30)", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
       
   Menu:addSubMenu("Clear Settings", "Clear")
   
@@ -252,31 +276,25 @@ function OriannaMenu()
       Menu.Clear.Farm:addParam("On", "Lane Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.Farm:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("Q2", "Default value = 30", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
+      Menu.Clear.Farm:addParam("Q2", "Use Q if Mana Percent > x% (30)", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.Farm:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("W2", "Default value = 40", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
+      Menu.Clear.Farm:addParam("W2", "Use W if Mana Percent > x% (40)", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
         Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.Farm:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("E2", "Default value = 50", SCRIPT_PARAM_SLICE, 50, 0, 100, 0)
+      Menu.Clear.Farm:addParam("E2", "Use E if Mana Percent > x% (50)", SCRIPT_PARAM_SLICE, 50, 0, 100, 0)
         
     Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
       Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
         Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.JFarm:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.JFarm:addParam("Q2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+      Menu.Clear.JFarm:addParam("Q2", "Use Q if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
         Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.JFarm:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.JFarm:addParam("W2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+      Menu.Clear.JFarm:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
         Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.JFarm:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.JFarm:addParam("E2", "Default value = 10", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
+      Menu.Clear.JFarm:addParam("E2", "Use E if Mana Percent > x% (10)", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
       
     Menu.Clear:addSubMenu("All Clear Settings", "All")
       Menu.Clear.All:addParam("On", "All Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('T'))
@@ -285,32 +303,24 @@ function OriannaMenu()
     Menu.Harass:addParam("On", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-    Menu.Harass:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("Q2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    Menu.Harass:addParam("Q2", "Use Q if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-    Menu.Harass:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("W2", "Default value = 0", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    Menu.Harass:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
       Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-    Menu.Harass:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("E2", "Default value = 60", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
-      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("Info", "Use E if Health Percent < x%\nor Enemy is near my Hero", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("E3", "Use E if Enemy is near my Hero", SCRIPT_PARAM_ONOFF, false)
+    Menu.Harass:addParam("E2", "Use E if Mana Percent > x% (60)", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
+    Menu.Harass:addParam("E3", "Use E if Enemy is near my Hero (true)", SCRIPT_PARAM_ONOFF, true)
     
   Menu:addSubMenu("LastHit Settings", "LastHit")
     Menu.LastHit:addParam("On", "LastHit", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
       Menu.LastHit:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.LastHit:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-    Menu.LastHit:addParam("Info", "Use Q if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.LastHit:addParam("Q2", "Default value = 90", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
+    Menu.LastHit:addParam("Q2", "Use Q if Mana Percent > x% (90)", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
     Menu.LastHit:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-    Menu.LastHit:addParam("Info", "Use W if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.LastHit:addParam("W2", "Default value = 95", SCRIPT_PARAM_SLICE, 95, 0, 100, 0)
-    Menu.LastHit:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, false)
-    Menu.LastHit:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
-    Menu.LastHit:addParam("E2", "Default value = 100", SCRIPT_PARAM_SLICE, 100, 0, 100, 0)
+    Menu.LastHit:addParam("W2", "Use W if Mana Percent > x% (90)", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
+    Menu.LastHit:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+    Menu.LastHit:addParam("E2", "Use E if Mana Percent > x% (90)", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
     
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
@@ -346,11 +356,12 @@ function OriannaMenu()
     end
     
   Menu:addSubMenu("Flee Settings", "Flee")
-    Menu.Flee:addParam("On", "Flee (Only Use KillSteal)", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
+    Menu.Flee:addParam("On", "Flee", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
     
   if VIP_USER then
   Menu:addSubMenu("Misc Settings", "Misc")
     Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
+    --Menu.Misc:addParam("BlockR", "Block R if hitCount is 0", SCRIPT_PARAM_ONOFF, true)
   end
   
   Menu:addSubMenu("Draw Settings", "Draw")
@@ -359,16 +370,17 @@ function OriannaMenu()
       Menu.Draw.Target:addParam("Q", "Draw Q Target", SCRIPT_PARAM_ONOFF, true)
       Menu.Draw.Target:addParam("E", "Draw E Target", SCRIPT_PARAM_ONOFF, false)
       
-    Menu.Draw:addSubMenu("Draw Predicted Position", "PP")
+    Menu.Draw:addSubMenu("Draw Predicted Position & Line", "PP")
       Menu.Draw.PP:addParam("Q", "Draw Q Pos", SCRIPT_PARAM_ONOFF, true)
-      Menu.Draw.PP:addParam("E", "Draw E Line", SCRIPT_PARAM_ONOFF, false)
+      Menu.Draw.PP:addParam("E", "Draw E Line", SCRIPT_PARAM_ONOFF, true)
       Menu.Draw.PP:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       Menu.Draw.PP:addParam("Line", "Draw Line to Pos", SCRIPT_PARAM_ONOFF, true)
-      
+        Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+        
     Menu.Draw:addParam("On", "Draw", SCRIPT_PARAM_ONOFF, true)
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("Ball", "Draw Ball", SCRIPT_PARAM_ONOFF, true)
-    Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, true)
+    Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("Q", "Draw Q range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("W", "Draw W range", SCRIPT_PARAM_ONOFF, false)
     Menu.Draw:addParam("E", "Draw E range", SCRIPT_PARAM_ONOFF, false)
