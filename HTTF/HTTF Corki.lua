@@ -1,4 +1,4 @@
-local Version = "1.112"
+local Version = "1.113"
 local AutoUpdate = true
 
 if myHero.charName ~= "Corki" then
@@ -208,12 +208,12 @@ function CorkiMenu()
   Menu:addSubMenu("HitChance Settings", "HitChance")
   
     Menu.HitChance:addSubMenu("Combo", "Combo")
-      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1)", SCRIPT_PARAM_SLICE, 1, 1, 3, 2)
-      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 0.12)", SCRIPT_PARAM_SLICE, .12, 0.01, 3, 2)
+      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.2)", SCRIPT_PARAM_SLICE, 1.2, 1, 3, 2)
+      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 1.02)", SCRIPT_PARAM_SLICE, 1.02, 0.01, 3, 2)
       
     Menu.HitChance:addSubMenu("Harass", "Harass")
       Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
-      Menu.HitChance.Harass:addParam("R", "R HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 1, 3, 2)
+      Menu.HitChance.Harass:addParam("R", "R HitChacne (Default value = 1.3)", SCRIPT_PARAM_SLICE, 1.3, 1, 3, 2)
       
   Menu:addSubMenu("Combo Settings", "Combo")
     Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
@@ -539,14 +539,10 @@ function Combo()
         CastR(RTarget, "Combo")
       end
       
-      if RHitChance ~= nil and RHitChance >= 0 and RHitChance < 1 then
+      for i, enemy in ipairs(EnemyHeroes) do
       
-        for i, enemy in ipairs(EnemyHeroes) do
-        
-          if ValidTarget(enemy, R.range+100) then
-            CastR(enemy, "Combo")
-          end
-          
+        if ValidTarget(enemy, R.range+100) then
+          CastR(enemy, "Combo")
         end
         
       end
@@ -740,7 +736,8 @@ function Harass()
     local HarassR2 = Menu.Harass.R2
     
     if R.ready and HarassR and HarassR2 <= ManaPercent() then
-    
+      RHitChance = nil
+      
       if ValidTarget(RTarget, R.range+100) then
         CastR(RTarget, "Harass")
       end
@@ -1110,7 +1107,7 @@ function CastR(unit, mode)
   
   RPos, RHitChance = HPred:GetPredict("R", unit, myHero, false, R.range)
   
-  if mode == "Combo" and RHitChance >= Menu.HitChance.Combo.R or mode == nil and RHitChance >= 1 then
+  if mode == "Combo" and RHitChance >= Menu.HitChance.Combo.R or mode == "Harass" and RHitChance >= Menu.HitChance.Harass.R or mode == nil and RHitChance >= 1 then
   
     if VIP_USER and Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _R, toX = RPos.x, toY = RPos.z, fromX = RPos.x, fromY = RPos.z}):send()
