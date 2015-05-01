@@ -31,8 +31,8 @@ if VersionData then
   if ServerVersion then
   
     if tonumber(Version) < ServerVersion then
-      self:ScriptMsg("New version available: v"..VersionData)
-      self:ScriptMsg("Updating, please don't press F9.")
+      ScriptMsg("New version available: v"..VersionData)
+      ScriptMsg("Updating, please don't press F9.")
       DelayAction(function() DownloadFile(UpdateURL, ScriptFilePath, function () self:ScriptMsg("Successfully updated.: v"..Version.." => v"..VersionData..", Press F9 twice to load the updated version.") end) end, 3)
     else
       HTTF_Orianna:ScriptMsg("You've got the latest version: v"..Version)
