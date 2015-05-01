@@ -626,7 +626,7 @@ function HTTF_Orianna:Combo()
       
     end
     
-    if self.Ball ~= nil and self.Q.ready and self.E.ready and ComboQ and ComboE and ComboQ2+ComboE2 <= self:ManaPercent() and .95*GetDistance(self.QTarget, self.Ball)/1200 > GetDistance(myHero, self.Ball)/1800+GetDistance(self.QTarget, myHero)/1200 then
+    if self.Ball ~= nil and self.Q.ready and self.E.ready and ComboQ and ComboE and ComboQ2+ComboE2 <= self:ManaPercent() and GetDistance(self.QTarget, self.Ball)/1200 > .25+GetDistance(myHero, self.Ball)/1800+GetDistance(self.QTarget, myHero)/1200 then
       self:CastEMe()
     end
     
@@ -882,7 +882,7 @@ function HTTF_Orianna:JFarm()
         
       end
       
-      if LargeJunglemob ~= nil and self.Ball ~= nil and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() and .95*GetDistance(LargeJunglemob, self.Ball)/1200 > GetDistance(myHero, self.Ball)/1800+GetDistance(LargeJunglemob, myHero)/1200 then
+      if LargeJunglemob ~= nil and self.Ball ~= nil and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() and GetDistance(LargeJunglemob, self.Ball)/1200 > .25+GetDistance(myHero, self.Ball)/1800+GetDistance(LargeJunglemob, myHero)/1200 then
         self:CastEMe()
       end
       
@@ -899,7 +899,7 @@ function HTTF_Orianna:JFarm()
         self:CastQ(junglemob)
       end
       
-      if junglemob ~= nil and self.Ball ~= nil and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() and .95*GetDistance(junglemob, self.Ball)/1200 > GetDistance(myHero, self.Ball)/1800+GetDistance(junglemob, myHero)/1200 then
+      if junglemob ~= nil and self.Ball ~= nil and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() and GetDistance(junglemob, self.Ball)/1200 > .25+GetDistance(myHero, self.Ball)/1800+GetDistance(junglemob, myHero)/1200 then
         self:CastEMe()
       end
       
@@ -1175,7 +1175,7 @@ function HTTF_Orianna:Harass()
       
     end
     
-    if self.Ball ~= nil and self.QHitChance ~= nil and self.QHitChance >= self.Menu.HitChance.Harass.Q and self.Q.ready and self.E.ready and HarassQ and HarassE and HarassQ2+HarassE2 <= self:ManaPercent() and .95*GetDistance(self.QTarget, self.Ball)/1200 > GetDistance(myHero, self.Ball)/1800+GetDistance(self.QTarget, myHero)/1200 then
+    if self.Ball ~= nil and self.QHitChance ~= nil and self.QHitChance >= self.Menu.HitChance.Harass.Q and self.Q.ready and self.E.ready and HarassQ and HarassE and HarassQ2+HarassE2 <= self:ManaPercent() and GetDistance(self.QTarget, self.Ball)/1200 > .25+GetDistance(myHero, self.Ball)/1800+GetDistance(self.QTarget, myHero)/1200 then
       self:CastEMe()
     end
     
