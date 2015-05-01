@@ -1492,7 +1492,7 @@ function HTTF_Orianna:KillSteal()
 end
 
 ---------------------------------------------------------------------------------
-function HTTF_Orianna:Auto()
+--[[function HTTF_Orianna:Auto()
   
   local AutoW = self.Menu.Auto.W
   local AutoW2 = self.Menu.Auto.W2
@@ -1680,7 +1680,7 @@ function HTTF_Orianna:Auto()
   self.Menu:addSubMenu("Flee Settings", "Flee")
     self.Menu.Flee:addParam("On", "Flee", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
     
-end
+end]]
 ---------------------------------------------------------------------------------
 
 function HTTF_Orianna:Flee()
