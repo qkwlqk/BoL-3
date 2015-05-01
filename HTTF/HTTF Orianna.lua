@@ -1,4 +1,4 @@
-local Version = "1.231"
+local Version = "1.232"
 
 if myHero.charName ~= "Orianna" then
   return
@@ -208,9 +208,9 @@ function HTTF_Orianna:Variables()
   self.ETS = TargetSelector(TARGET_LESS_CAST, self.ETargetRange, DAMAGE_MAGIC, false)
   self.STS = TargetSelector(TARGET_LOW_HP, self.S.range)
   
-  self.GetEnemyHeroes = GetEnemyHeroes()
-  self.GetAllyHeroes = GetAllyHeroes()
-  table.insert(self.GetAllyHeroes, myHero)
+  EnemyHeroes = GetEnemyHeroes()
+  AllyHeroes = GetAllyHeroes()
+  table.insert(AllyHeroes, myHero)
   self.EnemyMinions = minionManager(MINION_ENEMY, self.QMinionRange, myHero, MINION_SORT_MAXHEALTH_DEC)
   self.JungleMobs = minionManager(MINION_JUNGLE, self.QJunglemobRange, myHero, MINION_SORT_MAXHEALTH_DEC)
   
@@ -232,7 +232,7 @@ function HTTF_Orianna:RHit()
 
   if self.Ball ~= nil then
   
-    for i, enemy in ipairs(self.GetEnemyHeroes) do
+    for i, enemy in ipairs(EnemyHeroes) do
     
       local RPos, RHitChance, RNoH = self.HPred:GetPredict("R", enemy, self.Ball, true)
       
@@ -616,7 +616,7 @@ function HTTF_Orianna:Combo()
         self:CastQ(self.QTarget, "Combo")
       end
       
-      for i, enemy in ipairs(self.GetEnemyHeroes) do
+      for i, enemy in ipairs(EnemyHeroes) do
       
         if ValidTarget(enemy, self.Q.range+self.Q.radius) then
           self:CastQ(enemy, "Combo")
@@ -634,7 +634,7 @@ function HTTF_Orianna:Combo()
   
   if self.W.ready and ComboW and ComboW2 <= self:ManaPercent() then
   
-    for i, enemy in ipairs(self.GetEnemyHeroes) do
+    for i, enemy in ipairs(EnemyHeroes) do
     
       if ValidTarget(enemy, self.W.range+self.W.radius) then
         self:CastW(enemy, "Combo")
@@ -654,7 +654,7 @@ function HTTF_Orianna:Combo()
         self:CastE(self.ETarget)
       end
       
-      for i, enemy in ipairs(self.GetEnemyHeroes) do
+      for i, enemy in ipairs(EnemyHeroes) do
       
         if ValidTarget(enemy, self.E.range) then
           self:CastE(enemy)
@@ -670,9 +670,9 @@ function HTTF_Orianna:Combo()
   
     local breakfor = false
     
-    for i, ally in ipairs(self.GetAllyHeroes) do
+    for i, ally in ipairs(AllyHeroes) do
     
-      for j, enemy in ipairs(self.GetEnemyHeroes) do
+      for j, enemy in ipairs(EnemyHeroes) do
       
         if ValidTarget(enemy, self.R.range+self.R.radius) then
         
@@ -712,7 +712,7 @@ function HTTF_Orianna:Combo()
   
   if self.R.ready and ComboR3 <= self:ManaPercent() then
   
-    for i, enemy in ipairs(self.GetEnemyHeroes) do
+    for i, enemy in ipairs(EnemyHeroes) do
     
       if ValidTarget(enemy, self.R.range+self.R.radius) then
       
@@ -1163,7 +1163,7 @@ function HTTF_Orianna:Harass()
       
       if self.QHitChance == 0 then
       
-        for i, enemy in ipairs(self.GetEnemyHeroes) do
+        for i, enemy in ipairs(EnemyHeroes) do
         
           if ValidTarget(enemy, self.Q.range+self.Q.radius) then
             self:CastQ(self.QTarget, "Harass")
@@ -1183,7 +1183,7 @@ function HTTF_Orianna:Harass()
   
   if self.W.ready and HarassW and HarassW2 <= self:ManaPercent() then
   
-    for i, enemy in ipairs(self.GetEnemyHeroes) do
+    for i, enemy in ipairs(EnemyHeroes) do
     
       if ValidTarget(enemy, self.W.range+self.W.radius) then
         self:CastW(enemy, "Harass")
@@ -1208,7 +1208,7 @@ function HTTF_Orianna:Harass()
       
       if self.EHit == false then
       
-        for i, enemy in ipairs(self.GetEnemyHeroes) do
+        for i, enemy in ipairs(EnemyHeroes) do
         
           if ValidTarget(enemy, self.E.range) then
             self:CastE(enemy)
@@ -1453,7 +1453,7 @@ function HTTF_Orianna:KillSteal()
   local KillStealI = self.Menu.KillSteal.I
   local KillStealS = self.Menu.KillSteal.S
   
-  for i, enemy in ipairs(self.GetEnemyHeroes) do
+  for i, enemy in ipairs(EnemyHeroes) do
   
     local QenemyDmg = .7*self:GetDmg("Q", enemy)
     local WenemyDmg = self:GetDmg("W", enemy)
@@ -1507,7 +1507,7 @@ function HTTF_Orianna:Auto()
   
   if self.W.ready and AutoW and AutoW2 <= self:ManaPercent() then
   
-    for i, enemy in ipairs(self.GetEnemyHeroes) do
+    for i, enemy in ipairs(EnemyHeroes) do
     
       if ValidTarget(enemy, self.W.range+self.W.radius) then
       
@@ -1526,7 +1526,7 @@ function HTTF_Orianna:Auto()
   
   if self.R.ready and AutoR and AutoR2 <= self:ManaPercent() then
   
-    for i, enemy in ipairs(self.GetEnemyHeroes) do
+    for i, enemy in ipairs(EnemyHeroes) do
     
       if ValidTarget(enemy, self.R.range+self.R.radius) then
       
@@ -1562,7 +1562,7 @@ function HTTF_Orianna:EnemyHeroesCount(range)
 
   local count = 0
   
-  for i, enemy in ipairs(self.GetEnemyHeroes) do
+  for i, enemy in ipairs(EnemyHeroes) do
   
     if enemy ~= nil and ValidTarget(enemy, range) then
       count = count + 1
@@ -2057,7 +2057,7 @@ function HTTF_Orianna:Draw()
       
     end
     
-    for i, enemy in ipairs(self.GetEnemyHeroes) do
+    for i, enemy in ipairs(EnemyHeroes) do
     
       if enemy == nil then
         return
