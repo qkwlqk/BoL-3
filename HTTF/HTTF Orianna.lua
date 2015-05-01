@@ -1,14 +1,14 @@
---HPrediction by HTTF(Hup two three four)
-local Version = "1.222"
-local AutoUpdate = true
+local Version = "1.23"
 
 if myHero.charName ~= "Orianna" then
   return
 end
 
+class "HTTF_Orianna"
+
 require 'HPrediction'
 
-function ScriptMsg(msg)
+function HTTF_Orianna:ScriptMsg(msg)
   print("<font color=\"#daa520\"><b>HTTF Orianna:</b></font> <font color=\"#FFFFFF\">"..msg.."</font>")
 end
 
@@ -24,30 +24,26 @@ local UpdateURL = "https://"..Host..ScriptPath
 local VersionPath = "/BolHTTF/BoL/master/HTTF/Version/HTTF Orianna.version".."?rand="..math.random(1,10000)
 local VersionData = tonumber(GetWebResult(Host, VersionPath))
 
-if AutoUpdate then
+if VersionData then
 
-  if VersionData then
+  local ServerVersion = type(VersionData) == "number" and VersionData or nil
   
-    ServerVersion = type(VersionData) == "number" and VersionData or nil
-    
-    if ServerVersion then
-    
-      if tonumber(Version) < ServerVersion then
-        ScriptMsg("New version available: v"..VersionData)
-        ScriptMsg("Updating, please don't press F9.")
-        DelayAction(function() DownloadFile(UpdateURL, ScriptFilePath, function () ScriptMsg("Successfully updated.: v"..Version.." => v"..VersionData..", Press F9 twice to load the updated version.") end) end, 3)
-      else
-        ScriptMsg("You've got the latest version: v"..Version)
-      end
-      
+  if ServerVersion then
+  
+    if tonumber(Version) < ServerVersion then
+      self:ScriptMsg("New version available: v"..VersionData)
+      self:ScriptMsg("Updating, please don't press F9.")
+      DelayAction(function() DownloadFile(UpdateURL, ScriptFilePath, function () self:ScriptMsg("Successfully updated.: v"..Version.." => v"..VersionData..", Press F9 twice to load the updated version.") end) end, 3)
+    else
+      HTTF_Orianna:ScriptMsg("You've got the latest version: v"..Version)
     end
     
   else
-    ScriptMsg("Error downloading version info.")
+  HTTF_Orianna:ScriptMsg("Error downloading server version.")
   end
   
 else
-  ScriptMsg("AutoUpdate: false")
+  HTTF_Orianna:ScriptMsg("Error downloading version.")
 end
 
 ---------------------------------------------------------------------------------
@@ -55,48 +51,64 @@ end
 
 function OnLoad()
 
-  Variables()
-  OriannaMenu()
-  DelayAction(Orbwalk, 1)
+  HTTF_Orianna = HTTF_Orianna()
   
 end
 
-function Variables()
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
 
-  HPred = HPrediction()
+function HTTF_Orianna:__init()
+
+  self:Variables()
+  self:OriannaMenu()
+  DelayAction(function() self:Orbwalk() end, 1)
+  AddTickCallback(function() self:Tick() end)
+  AddDrawCallback(function() self:Draw() end)
+  AddAnimationCallback(function(unit, animation) self:Animation(unit, animation) end)
+  AddCreateObjCallback(function(object) self:CreateObj(object) end)
+  AddProcessSpellCallback(function(unit, spell) self:ProcessSpell(unit, spell) end)
   
-  Ball = myHero
-  RebornLoaded, RevampedLoaded, MMALoaded, SxOrbLoaded, SOWLoaded = false, false, false, false, false
+end
+
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+
+function HTTF_Orianna:Variables()
+
+  self.HPred = HPrediction()
+  
+  self.Ball = myHero
+  self.RebornLoaded, self.RevampedLoaded, self.MMALoaded, self.SxOrbLoaded, self.SOWLoaded = false, false, false, false, false
   
   if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
-    Ignite = SUMMONER_1
+    self.Ignite = SUMMONER_1
   elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerdot") then
-    Ignite = SUMMONER_2
+    self.Ignite = SUMMONER_2
   end
   
   if myHero:GetSpellData(SUMMONER_1).name:find("smite") then
-    Smite = SUMMONER_1
+    self.Smite = SUMMONER_1
   elseif myHero:GetSpellData(SUMMONER_2).name:find("smite") then
-    Smite = SUMMONER_2
+    self.Smite = SUMMONER_2
   end
   
-  Q = {range = 825, radius = 175, speed = 1200, ready}
-  W = {range = 1250, radius = 225, ready}
-  E = {range = 1250, speed = 1800, width = 80, ready}
-  R = {range = 1250, radius = 410, ready}
-  I = {range = 600, ready}
-  S = {range = 760, ready}
+  self.Q = {range = 825, radius = 175, speed = 1200, ready}
+  self.W = {range = 1250, radius = 225, ready}
+  self.E = {range = 1250, speed = 1800, width = 80, ready}
+  self.R = {range = 1250, radius = 410, ready}
+  self.I = {range = 600, ready}
+  self.S = {range = 760, ready}
   
-  AddRange = GetDistance(myHero.minBBox)/2
-  TrueRange = myHero.range+AddRange
+  self.TrueRange = myHero.range+myHero.boundingRadius
   
-  QTargetRange = Q.range+Q.radius
-  ETargetRange = E.range
+  self.QTargetRange = self.Q.range+self.Q.radius
+  self.ETargetRange = self.E.range
   
-  QMinionRange = Q.range+Q.radius
-  QJunglemobRange = Q.range+Q.radius
+  self.QMinionRange = self.Q.range+self.Q.radius
+  self.QJunglemobRange = self.Q.range+self.Q.radius
   
-  Items =
+  self.Items =
   {
   ["BC"] = {id=3144, range = 450, slot = nil, ready},
   ["BRK"] = {id=3153, range = 450, slot = nil, ready},
@@ -107,8 +119,8 @@ function Variables()
   ["StalkerD"] = {id=3710, slot = nil}
   }
   
-  S5SR = false
-  TT = false
+  local S5SR = false
+  local TT = false
   
   if GetGame().map.index == 15 then
     S5SR = true
@@ -117,7 +129,7 @@ function Variables()
   end
   
   if S5SR then
-    FocusJungleNames =
+    self.FocusJungleNames =
     {
     "SRU_Baron12.1.1",
     "SRU_Blue1.1.1",
@@ -136,7 +148,7 @@ function Variables()
     "SRU_Red4.1.1",
     "SRU_Red10.1.1"
     }
-  JungleMobNames =
+  self.JungleMobNames =
     {
     "SRU_BlueMini1.1.2",
     "SRU_BlueMini7.1.2",
@@ -160,7 +172,7 @@ function Variables()
     "SRU_RedMini10.1.3"
     }
   elseif TT then
-    FocusJungleNames =
+    self.FocusJungleNames =
     {
     "TT_NWraith1.1.1",
     "TT_NGolem2.1.1",
@@ -170,7 +182,7 @@ function Variables()
     "TT_NWolf6.1.1",
     "TT_Spiderboss8.1.1"
     }   
-    JungleMobNames =
+    self.JungleMobNames =
     {
     "TT_NWraith21.1.2",
     "TT_NWraith21.1.3",
@@ -184,29 +196,31 @@ function Variables()
     "TT_NWolf26.1.3"
     }
   else
-    FocusJungleNames =
+    self.FocusJungleNames =
     {
     }   
-    JungleMobNames =
+    self.JungleMobNames =
     {
     }
   end
   
-  QTS = TargetSelector(TARGET_LESS_CAST, QTargetRange, DAMAGE_MAGIC, false)
-  ETS = TargetSelector(TARGET_LESS_CAST, ETargetRange, DAMAGE_MAGIC, false)
-  STS = TargetSelector(TARGET_LOW_HP, S.range)
+  self.QTS = TargetSelector(TARGET_LESS_CAST, self.QTargetRange, DAMAGE_MAGIC, false)
+  self.ETS = TargetSelector(TARGET_LESS_CAST, self.ETargetRange, DAMAGE_MAGIC, false)
+  self.STS = TargetSelector(TARGET_LOW_HP, self.S.range)
   
-  EnemyHeroes = GetEnemyHeroes()
-  EnemyMinions = minionManager(MINION_ENEMY, QMinionRange, myHero, MINION_SORT_MAXHEALTH_DEC)
-  JungleMobs = minionManager(MINION_JUNGLE, QJunglemobRange, myHero, MINION_SORT_MAXHEALTH_DEC)
+  self.GetEnemyHeroes = GetEnemyHeroes()
+  self.GetAllyHeroes = GetAllyHeroes()
+  table.insert(self.GetAllyHeroes, myHero)
+  self.EnemyMinions = minionManager(MINION_ENEMY, self.QMinionRange, myHero, MINION_SORT_MAXHEALTH_DEC)
+  self.JungleMobs = minionManager(MINION_JUNGLE, self.QJunglemobRange, myHero, MINION_SORT_MAXHEALTH_DEC)
   
 end
 
 ---------------------------------------------------------------------------------
 
-function BlockR(unit)
+--[[function HTTF_Orianna:BlockR(unit)
 
-  if VIP_USER and Menu.Misc.BlockR and Packet(unit):get('spellId') == _R and not RHit() then
+  if VIP_USER and self.Menu.Misc.BlockR and Packet(unit):get('spellId') == _R and not RHit() then
     unit:Block()
   end
   
@@ -214,13 +228,13 @@ end
 
 ---------------------------------------------------------------------------------
 
-function RHit()
+function HTTF_Orianna:RHit()
 
-  if Ball ~= nil then
+  if self.Ball ~= nil then
   
-    for i, enemy in ipairs(EnemyHeroes) do
+    for i, enemy in ipairs(self.GetEnemyHeroes) do
     
-      local RPos, RHitChance, RNoH = HPred:GetPredict("R", enemy, Ball, true)
+      local RPos, RHitChance, RNoH = self.HPred:GetPredict("R", enemy, self.Ball, true)
       
       if RNoH > 0 then
         return true
@@ -231,232 +245,247 @@ function RHit()
   end
   
   return false
-end
+end]]
 
 ---------------------------------------------------------------------------------
 
-function OriannaMenu()
+function HTTF_Orianna:OriannaMenu()
 
-  Menu = scriptConfig("HTTF Orianna", "HTTF Orianna")
+  self.Menu = scriptConfig("HTTF Orianna", "HTTF Orianna")
   
-  Menu:addSubMenu("HitChance Settings", "HitChance")
+  self.Menu:addSubMenu("HitChance Settings", "HitChance")
   
-    Menu.HitChance:addSubMenu("Combo", "Combo")
-      Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.6)", SCRIPT_PARAM_SLICE, 1.6, 1, 3, 2)
-      Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
-      Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
+    self.Menu.HitChance:addSubMenu("Combo", "Combo")
+      self.Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.6)", SCRIPT_PARAM_SLICE, 1.6, 1, 3, 2)
+      self.Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
+      self.Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
       
-    Menu.HitChance:addSubMenu("Harass", "Harass")
-      Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
-      Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
+    self.Menu.HitChance:addSubMenu("Harass", "Harass")
+      self.Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
+      self.Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
       
-  Menu:addSubMenu("Combo Settings", "Combo")
-    Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-    Menu.Combo:addParam("Q2", "Use Q if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-    Menu.Combo:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-    Menu.Combo:addParam("E2", "Use E if Mana Percent > x% (10)", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
-    Menu.Combo:addParam("E3", "Use E if Enemy is near my Hero (true)", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("R", "Use Smart R (Single Target)", SCRIPT_PARAM_ONOFF, true)
-    Menu.Combo:addParam("R2", "Use R (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
-    Menu.Combo:addParam("R3", "Use R if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-    Menu.Combo:addParam("R4", "Use R Min Count (3)", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
-      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
-      Menu.Combo:addParam("BRK", "Use BRK if my own HP < x% (30)", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
+  self.Menu:addSubMenu("Combo Settings", "Combo")
+    self.Menu.Combo:addParam("On", "Combo", SCRIPT_PARAM_ONKEYDOWN, false, 32)
+      self.Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Combo:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Combo:addParam("Q2", "Use Q if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+      self.Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Combo:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Combo:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+      self.Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Combo:addParam("E2", "Use E if Mana Percent > x% (10)", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
+    self.Menu.Combo:addParam("E3", "and Use E if Enemy is near my Hero (true)", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Combo:addParam("R", "Use Smart R (Single Target)", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Combo:addParam("R2", "Use R (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Combo:addParam("R3", "and Use R if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    self.Menu.Combo:addParam("R4", "and Use R Min Count (3)", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
+      self.Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Combo:addParam("Item", "Use Items", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Combo:addParam("BRK", "Use BRK if my own HP < x% (30)", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
       
-  Menu:addSubMenu("Clear Settings", "Clear")
+  self.Menu:addSubMenu("Clear Settings", "Clear")
   
-    Menu.Clear:addSubMenu("Lane Clear Settings", "Farm")
-      Menu.Clear.Farm:addParam("On", "Lane Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
-        Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.Farm:addParam("Q2", "Use Q if Mana Percent > x% (30)", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
-        Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.Farm:addParam("W2", "Use W if Mana Percent > x% (40)", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
-        Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.Farm:addParam("E2", "Use E if Mana Percent > x% (50)", SCRIPT_PARAM_SLICE, 50, 0, 100, 0)
+    self.Menu.Clear:addSubMenu("Lane Clear Settings", "Farm")
+      self.Menu.Clear.Farm:addParam("On", "Lane Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
+        self.Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      self.Menu.Clear.Farm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Clear.Farm:addParam("Q2", "Use Q if Mana Percent > x% (30)", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
+        self.Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      self.Menu.Clear.Farm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Clear.Farm:addParam("W2", "Use W if Mana Percent > x% (40)", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
+        self.Menu.Clear.Farm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      self.Menu.Clear.Farm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Clear.Farm:addParam("E2", "Use E if Mana Percent > x% (50)", SCRIPT_PARAM_SLICE, 50, 0, 100, 0)
         
-    Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
-      Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
-        Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.JFarm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.JFarm:addParam("Q2", "Use Q if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-        Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.JFarm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.JFarm:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-        Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-      Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-      Menu.Clear.JFarm:addParam("E2", "Use E if Mana Percent > x% (10)", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
+    self.Menu.Clear:addSubMenu("Jungle Clear Settings", "JFarm")
+      self.Menu.Clear.JFarm:addParam("On", "Jungle Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('V'))
+        self.Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      self.Menu.Clear.JFarm:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Clear.JFarm:addParam("Q2", "Use Q if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+        self.Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      self.Menu.Clear.JFarm:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Clear.JFarm:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+        self.Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      self.Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Clear.JFarm:addParam("E2", "Use E if Mana Percent > x% (10)", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
       
-    Menu.Clear:addSubMenu("All Clear Settings", "All")
-      Menu.Clear.All:addParam("On", "All Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('T'))
+    self.Menu.Clear:addSubMenu("All Clear Settings", "All")
+      self.Menu.Clear.All:addParam("On", "All Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('T'))
       
-  Menu:addSubMenu("Harass Settings", "Harass")
-    Menu.Harass:addParam("On", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
-      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-    Menu.Harass:addParam("Q2", "Use Q if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-    Menu.Harass:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-      Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-    Menu.Harass:addParam("E2", "Use E if Mana Percent > x% (60)", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
-    Menu.Harass:addParam("E3", "Use E if Enemy is near my Hero (true)", SCRIPT_PARAM_ONOFF, true)
+  self.Menu:addSubMenu("Harass Settings", "Harass")
+    self.Menu.Harass:addParam("On", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
+      self.Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Harass:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Harass:addParam("Q2", "Use Q if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+      self.Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Harass:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+      self.Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Harass:addParam("E2", "Use E if Mana Percent > x% (60)", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
+    self.Menu.Harass:addParam("E3", "and Use E if Enemy is near my Hero (true)", SCRIPT_PARAM_ONOFF, true)
     
-  Menu:addSubMenu("LastHit Settings", "LastHit")
-    Menu.LastHit:addParam("On", "LastHit", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
-      Menu.LastHit:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.LastHit:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-    Menu.LastHit:addParam("Q2", "Use Q if Mana Percent > x% (90)", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
-    Menu.LastHit:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-    Menu.LastHit:addParam("W2", "Use W if Mana Percent > x% (90)", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
-    Menu.LastHit:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-    Menu.LastHit:addParam("E2", "Use E if Mana Percent > x% (90)", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
+  self.Menu:addSubMenu("LastHit Settings", "LastHit")
+    self.Menu.LastHit:addParam("On", "LastHit", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
+      self.Menu.LastHit:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.LastHit:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.LastHit:addParam("Q2", "Use Q if Mana Percent > x% (90)", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
+    self.Menu.LastHit:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.LastHit:addParam("W2", "Use W if Mana Percent > x% (90)", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
+    self.Menu.LastHit:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.LastHit:addParam("E2", "Use E if Mana Percent > x% (90)", SCRIPT_PARAM_SLICE, 90, 0, 100, 0)
     
-  Menu:addSubMenu("Jungle Steal Settings", "JSteal")
-    Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
-    Menu.JSteal:addParam("On2", "Jungle Steal Toggle", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
-      Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.JSteal:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-    Menu.JSteal:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-    Menu.JSteal:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-    if Smite ~= nil then
-      Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.JSteal:addParam("S", "Use Smite", SCRIPT_PARAM_ONOFF, true)
+  self.Menu:addSubMenu("Jungle Steal Settings", "JSteal")
+    self.Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
+    self.Menu.JSteal:addParam("On2", "Jungle Steal Toggle", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
+      self.Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.JSteal:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.JSteal:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.JSteal:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+    if self.Smite ~= nil then
+      self.Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.JSteal:addParam("S", "Use Smite", SCRIPT_PARAM_ONOFF, true)
     end
-      Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.JSteal:addParam("Always", "Always Use Q, W, E and Smite\n(Baron & Dragon)", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.JSteal:addParam("Always", "Always Use Q, W, E and Smite\n(Baron & Dragon)", SCRIPT_PARAM_ONOFF, true)
     
-  Menu:addSubMenu("KillSteal Settings", "KillSteal")
-    Menu.KillSteal:addParam("On", "KillSteal", SCRIPT_PARAM_ONOFF, true)
-      Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.KillSteal:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
-      Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.KillSteal:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-      Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.KillSteal:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-      Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.KillSteal:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, false)
-    if Ignite ~= nil then
-      Menu.KillSteal:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
-    Menu.KillSteal:addParam("I", "Use Ignite", SCRIPT_PARAM_ONOFF, true)
+  self.Menu:addSubMenu("KillSteal Settings", "KillSteal")
+    self.Menu.KillSteal:addParam("On", "KillSteal", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.KillSteal:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.KillSteal:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.KillSteal:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.KillSteal:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, false)
+    if self.Ignite ~= nil then
+      self.Menu.KillSteal:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.KillSteal:addParam("I", "Use Ignite", SCRIPT_PARAM_ONOFF, true)
     end
-    if Smite ~= nil then
-      Menu.KillSteal:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
-    Menu.KillSteal:addParam("S", "Use Stalker's Blade", SCRIPT_PARAM_ONOFF, true)
+    if self.Smite ~= nil then
+      self.Menu.KillSteal:addParam("Blank4", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.KillSteal:addParam("S", "Use Stalker's Blade", SCRIPT_PARAM_ONOFF, true)
     end
     
-  Menu:addSubMenu("Flee Settings", "Flee")
-    Menu.Flee:addParam("On", "Flee", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
+  self.Menu:addSubMenu("Auto Settings", "Auto")
+    self.Menu.Auto:addParam("On", "Auto", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Auto:addParam("W", "Use W (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Auto:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    self.Menu.Auto:addParam("W3", "and Use W Min Count (2)", SCRIPT_PARAM_SLICE, 2, 2, 5, 0)
+      self.Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    --self.Menu.Auto:addParam("E", "Use E to defend from targeted spells", SCRIPT_PARAM_ONOFF, true)
+    --self.Menu.Auto:addParam("E2", "Use E if Mana Percent > x% (80)", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
+    --self.Menu.Auto:addParam("E3", "or Use E if Health Percent < x% (40)", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
+      --self.Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Auto:addParam("R", "Use R (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Auto:addParam("R2", "and Use R if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    self.Menu.Auto:addParam("R3", "and Use R Min Count (4)", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
+    
+  self.Menu:addSubMenu("Flee Settings", "Flee")
+    self.Menu.Flee:addParam("On", "Flee", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
     
   if VIP_USER then
-  Menu:addSubMenu("Misc Settings", "Misc")
-    Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
-    --Menu.Misc:addParam("BlockR", "Block R if hitCount is 0", SCRIPT_PARAM_ONOFF, true)
+  self.Menu:addSubMenu("Misc Settings", "Misc")
+    self.Menu.Misc:addParam("UsePacket", "Use Packet", SCRIPT_PARAM_ONOFF, true)
+    --self.Menu.Misc:addParam("BlockR", "Block R if hitCount is 0", SCRIPT_PARAM_ONOFF, true)
   end
   
-  Menu:addSubMenu("Draw Settings", "Draw")
+  self.Menu:addSubMenu("Draw Settings", "Draw")
   
-    Menu.Draw:addSubMenu("Draw Target", "Target")
-      Menu.Draw.Target:addParam("Q", "Draw Q Target", SCRIPT_PARAM_ONOFF, true)
-      Menu.Draw.Target:addParam("E", "Draw E Target", SCRIPT_PARAM_ONOFF, false)
+    self.Menu.Draw:addSubMenu("Draw Target", "Target")
+      self.Menu.Draw.Target:addParam("Q", "Draw Q Target", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Draw.Target:addParam("E", "Draw E Target", SCRIPT_PARAM_ONOFF, false)
       
-    Menu.Draw:addSubMenu("Draw Predicted Position & Line", "PP")
-      Menu.Draw.PP:addParam("Q", "Draw Q Pos", SCRIPT_PARAM_ONOFF, true)
-      Menu.Draw.PP:addParam("E", "Draw E Line", SCRIPT_PARAM_ONOFF, true)
-      Menu.Draw.PP:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-      Menu.Draw.PP:addParam("Line", "Draw Line to Pos", SCRIPT_PARAM_ONOFF, true)
-        Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Draw:addSubMenu("Draw Predicted Position & Line", "PP")
+      self.Menu.Draw.PP:addParam("Q", "Draw Q Pos", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Draw.PP:addParam("E", "Draw E Line", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Draw.PP:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      self.Menu.Draw.PP:addParam("Line", "Draw Line to Pos", SCRIPT_PARAM_ONOFF, true)
+        self.Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
         
-    Menu.Draw:addParam("On", "Draw", SCRIPT_PARAM_ONOFF, true)
-      Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Draw:addParam("Ball", "Draw Ball", SCRIPT_PARAM_ONOFF, true)
-    Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, false)
-    Menu.Draw:addParam("Q", "Draw Q range", SCRIPT_PARAM_ONOFF, true)
-    Menu.Draw:addParam("W", "Draw W range", SCRIPT_PARAM_ONOFF, false)
-    Menu.Draw:addParam("E", "Draw E range", SCRIPT_PARAM_ONOFF, false)
-    Menu.Draw:addParam("R", "Draw R range", SCRIPT_PARAM_ONOFF, false)
-    if Ignite ~= nil then
-      Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Draw:addParam("I", "Draw Ignite range", SCRIPT_PARAM_ONOFF, false)
+    self.Menu.Draw:addParam("On", "Draw", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Draw:addParam("Ball", "Draw Ball", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, false)
+    self.Menu.Draw:addParam("Q", "Draw Q range", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Draw:addParam("W", "Draw W range", SCRIPT_PARAM_ONOFF, false)
+    self.Menu.Draw:addParam("E", "Draw E range", SCRIPT_PARAM_ONOFF, false)
+    self.Menu.Draw:addParam("R", "Draw R range", SCRIPT_PARAM_ONOFF, false)
+    if self.Ignite ~= nil then
+      self.Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Draw:addParam("I", "Draw Ignite range", SCRIPT_PARAM_ONOFF, false)
     end
-    if Smite ~= nil then
-      Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Draw:addParam("S", "Draw Smite range", SCRIPT_PARAM_ONOFF, true)
+    if self.Smite ~= nil then
+      self.Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Draw:addParam("S", "Draw Smite range", SCRIPT_PARAM_ONOFF, true)
     end
-      Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Draw:addParam("Path", "Draw Move Path", SCRIPT_PARAM_ONOFF, false)
-      Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    Menu.Draw:addParam("Hitchance", "Draw Hitchance", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Draw:addParam("Path", "Draw Move Path", SCRIPT_PARAM_ONOFF, false)
+      self.Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Draw:addParam("Hitchance", "Draw Hitchance", SCRIPT_PARAM_ONOFF, true)
     
-  Menu.Combo.On = false
-  Menu.Clear.Farm.On = false
-  Menu.Clear.JFarm.On = false
-  Menu.Clear.All.On = false
-  Menu.Harass.On = false
-  Menu.LastHit.On = false
-  Menu.JSteal.On = false
-  Menu.Flee.On = false
+  self.Menu.Combo.On = false
+  self.Menu.Clear.Farm.On = false
+  self.Menu.Clear.JFarm.On = false
+  self.Menu.Clear.All.On = false
+  self.Menu.Harass.On = false
+  self.Menu.LastHit.On = false
+  self.Menu.JSteal.On = false
+  self.Menu.Flee.On = false
   
 end
 
 ---------------------------------------------------------------------------------
 
-function Orbwalk()
+function HTTF_Orianna:Orbwalk()
 
   if _G.AutoCarry then
   
     if _G.Reborn_Initialised then
-      RebornLoaded = true
-      ScriptMsg("Found SAC: Reborn.")
+      self.RebornLoaded = true
+      self:ScriptMsg("Found SAC: Reborn.")
     else
-      RevampedLoaded = true
-      ScriptMsg("Found SAC: Revamped.")
+      self.RevampedLoaded = true
+      self:ScriptMsg("Found SAC: Revamped.")
     end
     
   elseif _G.Reborn_Loaded then
-    DelayAction(Orbwalk, 1)
+    DelayAction(function() self:Orbwalk() end, 1)
   elseif _G.MMA_Loaded then
-    MMALoaded = true
-    ScriptMsg("Found MMA.")
+    self.MMALoaded = true
+    self:ScriptMsg("Found MMA.")
   elseif FileExist(LIB_PATH .. "SxOrbWalk.lua") then
   
     require 'SxOrbWalk'
     
-    SxOrbMenu = scriptConfig("SxOrb Settings", "SxOrb")
+    self.SxOrbMenu = scriptConfig("SxOrb Settings", "SxOrb")
     
-    SxOrb = SxOrbWalk()
-    SxOrb:LoadToMenu(SxOrbMenu)
+    self.SxOrb = SxOrbWalk()
+    self.SxOrb:LoadToMenu(self.SxOrbMenu)
     
-    SxOrbLoaded = true
-    ScriptMsg("Found SxOrb.")
+    self.SxOrbLoaded = true
+    self:ScriptMsg("Found SxOrb.")
   elseif FileExist(LIB_PATH .. "SOW.lua") then
   
     require 'SOW'
     require 'VPrediction'
     
-    VP = VPrediction()
-    SOWVP = SOW(VP)
+    self.VP = VPrediction()
+    self.SOWVP = SOW(self.VP)
     
-    Menu:addSubMenu("Orbwalk Settings (SOW)", "Orbwalk")
-      Menu.Orbwalk:addParam("Info", "SOW settings", SCRIPT_PARAM_INFO, "")
-      Menu.Orbwalk:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-      SOWVP:LoadToMenu(Menu.Orbwalk)
+    self.Menu:addSubMenu("Orbwalk Settings (SOW)", "Orbwalk")
+      self.Menu.Orbwalk:addParam("Info", "SOW settings", SCRIPT_PARAM_INFO, "")
+      self.Menu.Orbwalk:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+      self.SOWVP:LoadToMenu(self.Menu.Orbwalk)
       
-    SOWLoaded = true
-    ScriptMsg("Found SOW.")
+    self.SOWLoaded = true
+    self:ScriptMsg("Found SOW.")
   else
-    ScriptMsg("Orbwalk not founded.")
+    self:ScriptMsg("Orbwalk not founded.")
   end
   
 end
@@ -464,163 +493,171 @@ end
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function OnTick()
+function HTTF_Orianna:Tick()
 
   if myHero.dead then
     return
   end
   
-  Checks()
-  Targets()
+  self:Checks()
+  self:Targets()
   
-  if Menu.Combo.On then
-    Combo()
+  if self.Menu.Combo.On then
+    self:Combo()
   end
   
-  if Menu.Clear.Farm.On then
-    Farm()
+  if self.Menu.Clear.Farm.On then
+    self:Farm()
   end
   
-  if Menu.Clear.JFarm.On then
-    JFarm()
+  if self.Menu.Clear.JFarm.On then
+    self:JFarm()
   end
   
-  if Menu.Clear.All.On then
-    All()
+  if self.Menu.Clear.All.On then
+    self:All()
   end
   
-  if Menu.Harass.On then
-    Harass()
+  if self.Menu.Harass.On then
+    self:Harass()
   end
   
-  if Menu.LastHit.On then
-    LastHit()
+  if self.Menu.LastHit.On then
+    self:LastHit()
   end
   
-  if Menu.JSteal.On or Menu.JSteal.On2 then
-    JSteal()
+  if self.Menu.JSteal.On or self.Menu.JSteal.On2 then
+    self:JSteal()
   end
   
-  if Menu.JSteal.Always then
-    JstealAlways()
+  if self.Menu.JSteal.Always then
+    self:JstealAlways()
   end
   
-  if Menu.KillSteal.On then
-    KillSteal()
+  if self.Menu.KillSteal.On then
+    self:KillSteal()
   end
   
-  if Menu.Flee.On then
-    Flee()
+  if self.Menu.Auto.On then
+    self:Auto()
+  end
+  
+  if self.Menu.Flee.On then
+    self:Flee()
   end
   
 end
 
 ---------------------------------------------------------------------------------
 
-function Checks()
+function HTTF_Orianna:Checks()
 
-  Q.ready = myHero:CanUseSpell(_Q) == READY
-  W.ready = myHero:CanUseSpell(_W) == READY
-  E.ready = myHero:CanUseSpell(_E) == READY
-  R.ready = myHero:CanUseSpell(_R) == READY
-  I.ready = Ignite ~= nil and myHero:CanUseSpell(Ignite) == READY
-  S.ready = Smite ~= nil and myHero:CanUseSpell(Smite) == READY
+  self.Q.ready = myHero:CanUseSpell(_Q) == READY
+  self.W.ready = myHero:CanUseSpell(_W) == READY
+  self.E.ready = myHero:CanUseSpell(_E) == READY
+  self.R.ready = myHero:CanUseSpell(_R) == READY
+  self.I.ready = self.Ignite ~= nil and myHero:CanUseSpell(self.Ignite) == READY
+  self.S.ready = self.Smite ~= nil and myHero:CanUseSpell(self.Smite) == READY
   
-  for _, item in pairs(Items) do
+  for _, item in pairs(self.Items) do
     item.slot = GetInventorySlotItem(item.id)
   end
   
-  Items["BC"].ready = Items["BC"].slot and myHero:CanUseSpell(Items["BC"].slot) == READY
-  Items["BRK"].ready = Items["BRK"].slot and myHero:CanUseSpell(Items["BRK"].slot) == READY
-  Items["Stalker"].ready = Smite ~= nil and (Items["Stalker"].slot or Items["StalkerW"].slot or Items["StalkerM"].slot or Items["StalkerJ"].slot or Items["StalkerD"].slot) and myHero:CanUseSpell(Smite) == READY
+  self.Items["BC"].ready = self.Items["BC"].slot and myHero:CanUseSpell(self.Items["BC"].slot) == READY
+  self.Items["BRK"].ready = self.Items["BRK"].slot and myHero:CanUseSpell(self.Items["BRK"].slot) == READY
+  self.Items["Stalker"].ready = self.Smite ~= nil and (self.Items["Stalker"].slot or self.Items["StalkerW"].slot or self.Items["StalkerM"].slot or self.Items["StalkerJ"].slot or self.Items["StalkerD"].slot) and myHero:CanUseSpell(self.Smite) == READY
   
-  Q.level = myHero:GetSpellData(_Q).level
-  W.level = myHero:GetSpellData(_W).level
-  E.level = myHero:GetSpellData(_E).level
-  R.level = myHero:GetSpellData(_R).level
+  self.Q.level = myHero:GetSpellData(_Q).level
+  self.W.level = myHero:GetSpellData(_W).level
+  self.E.level = myHero:GetSpellData(_E).level
+  self.R.level = myHero:GetSpellData(_R).level
   
-  EnemyMinions:update()
-  JungleMobs:update()
+  self.EnemyMinions:update()
+  self.JungleMobs:update()
   
-  AddRange = GetDistance(myHero.minBBox)/2
-  TrueRange = myHero.range+AddRange
-  
-end
-
----------------------------------------------------------------------------------
-
-function Targets()
-
-  QTS:update()
-  ETS:update()
-  STS:update()
-  
-  QTarget = QTS.target
-  ETarget = ETS.target
-  STarget = STS.target
+  self.TrueRange = myHero.range+myHero.boundingRadius
   
 end
 
 ---------------------------------------------------------------------------------
 
-function Combo()
+function HTTF_Orianna:Targets()
 
-  if QTarget ~= nil then
+  self.QTS:update()
+  self.ETS:update()
+  self.STS:update()
   
-    local ComboQ = Menu.Combo.Q
-    local ComboQ2 = Menu.Combo.Q2
-    local ComboE = Menu.Combo.E
-    local ComboE2 = Menu.Combo.E2
+  self.QTarget = self.QTS.target
+  self.ETarget = self.ETS.target
+  self.STarget = self.STS.target
+  
+end
+
+---------------------------------------------------------------------------------
+
+function HTTF_Orianna:Combo()
+  
+  local ComboE = self.Menu.Combo.E
+  local ComboE2 = self.Menu.Combo.E2
+  local ComboW = self.Menu.Combo.W
+  local ComboW2 = self.Menu.Combo.W2
+  local ComboR = self.Menu.Combo.R
+  local ComboR2 = self.Menu.Combo.R2
+  local ComboR3 = self.Menu.Combo.R3
+
+  if self.QTarget ~= nil then
+  
+    local ComboQ = self.Menu.Combo.Q
+    local ComboQ2 = self.Menu.Combo.Q2
     
-    if Q.ready and ComboQ and ComboQ2 <= ManaPercent() then
+    if self.Q.ready and ComboQ and ComboQ2 <= self:ManaPercent() then
     
-      if ValidTarget(QTarget, Q.range+Q.radius) then
-        CastQ(QTarget, "Combo")
+      if ValidTarget(self.QTarget, self.Q.range+self.Q.radius) then
+        self:CastQ(self.QTarget, "Combo")
       end
       
-      for i, enemy in ipairs(EnemyHeroes) do
+      for i, enemy in ipairs(self.GetEnemyHeroes) do
       
-        if ValidTarget(enemy, Q.range+Q.radius) then
-          CastQ(enemy, "Combo")
+        if ValidTarget(enemy, self.Q.range+self.Q.radius) then
+          self:CastQ(enemy, "Combo")
         end
         
       end
       
     end
     
-    if Ball ~= nil and Q.ready and E.ready and ComboQ and ComboE and ComboQ2+ComboE2 <= ManaPercent() and .95*GetDistance(QTarget, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QTarget, myHero)/1200 then
-      CastEMe()
+    if self.Ball ~= nil and self.Q.ready and self.E.ready and ComboQ and ComboE and ComboQ2+ComboE2 <= self:ManaPercent() and .95*GetDistance(self.QTarget, self.Ball)/1200 > GetDistance(myHero, self.Ball)/1800+GetDistance(self.QTarget, myHero)/1200 then
+      self:CastEMe()
     end
     
   end
   
-  local ComboW = Menu.Combo.W
-  local ComboW2 = Menu.Combo.W2
+  if self.W.ready and ComboW and ComboW2 <= self:ManaPercent() then
   
-  for i, enemy in ipairs(EnemyHeroes) do
-  
-    if W.ready and ComboW and ComboW2 <= ManaPercent() and ValidTarget(enemy, W.range+W.radius) then
-      CastW(enemy, "Combo")
-    end
+    for i, enemy in ipairs(self.GetEnemyHeroes) do
     
-  end
-  
-  if ETarget ~= nil then
-  
-    local ComboE = Menu.Combo.E
-    local ComboE2 = Menu.Combo.E2
-    local ComboE3 = Menu.Combo.E3
-    
-    if E.ready and ComboE and ComboE2 <= ManaPercent() and (not ComboE3 or ComboE3 and EnemyHeroesCount(600) ~= 0) then
-    
-      if ValidTarget(ETarget, E.range) then
-        CastE(ETarget)
+      if ValidTarget(enemy, self.W.range+self.W.radius) then
+        self:CastW(enemy, "Combo")
       end
       
-      for i, enemy in ipairs(EnemyHeroes) do
+    end
+    
+  end
+  
+  if self.ETarget ~= nil then
+  
+    local ComboE3 = self.Menu.Combo.E3
+    
+    if self.E.ready and ComboE and ComboE2 <= self:ManaPercent() and (not ComboE3 or ComboE3 and self.EnemyHeroesCount(600) ~= 0) then
+    
+      if ValidTarget(self.ETarget, self.E.range) then
+        self:CastE(self.ETarget)
+      end
       
-        if ValidTarget(enemy, E.range) then
-          CastE(enemy)
+      for i, enemy in ipairs(self.GetEnemyHeroes) do
+      
+        if ValidTarget(enemy, self.E.range) then
+          self:CastE(enemy)
         end
         
       end
@@ -629,46 +666,98 @@ function Combo()
     
   end
   
-  local ComboR = Menu.Combo.R
-  local ComboR2 = Menu.Combo.R2
-  local ComboR3 = Menu.Combo.R3
+  if self.E.ready and self.R.ready and ComboE and ComboE2+ComboR3 <= self:ManaPercent() then
   
-  for i, enemy in ipairs(EnemyHeroes) do
-  
-    local QenemyDmg = Q.ready and 2*GetDmg("Q", enemy) or GetDmg("Q", enemy)
-    local WenemyDmg = W.ready and GetDmg("W", enemy) or 0
-    local RenemyDmg = GetDmg("R", enemy)
+    local breakfor = false
     
-    if R.ready and ComboR and ComboR3 <= ManaPercent() and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and ValidTarget(enemy, R.range+R.radius) then
-      CastR(enemy, "ComboS")
+    for i, ally in ipairs(self.GetAllyHeroes) do
+    
+      for j, enemy in ipairs(self.GetEnemyHeroes) do
+      
+        if ValidTarget(enemy, self.R.range+self.R.radius) then
+        
+          local RPos, RHitChance, RNoH = self.HPred:GetPredict("R", enemy, ally, true)
+          
+          if ComboR then
+          
+            local QenemyDmg = self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)
+            local WenemyDmg = self.W.ready and self:GetDmg("W", enemy) or 0
+            local RenemyDmg = self:GetDmg("R", enemy)
+            
+            if QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and RHitChance >= self.Menu.HitChance.Combo.R then
+              self:GiveE(ally)
+              breakfor = true
+              break
+            end
+            
+          end
+          
+          if ComboR2 and RNoH >= self.Menu.Combo.R4 then
+            breakfor = true
+            self:GiveE(ally)
+             break
+          end
+          
+        end
+        
+      end
+      
+      if breakfor then
+        break
+      end
+      
     end
     
-    if R.ready and ComboR2 and ComboR3 <= ManaPercent() and ValidTarget(enemy, R.range+R.radius) then
-      CastR(enemy, "ComboM")
+  end
+  
+  if self.R.ready and ComboR3 <= self:ManaPercent() then
+  
+    for i, enemy in ipairs(self.GetEnemyHeroes) do
+    
+      if ValidTarget(enemy, self.R.range+self.R.radius) then
+      
+        if ComboR then
+        
+          local QenemyDmg = self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)
+          local WenemyDmg = self.W.ready and self:GetDmg("W", enemy) or 0
+          local RenemyDmg = self:GetDmg("R", enemy)
+          
+          if QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
+            self:CastR(enemy, "ComboS")
+          end
+          
+        end
+        
+        if ComboR2 then
+          self:CastR(enemy, "ComboM")
+        end
+        
+      end
+      
     end
     
   end
   
   if STarget ~= nil then
   
-    local ComboItem = Menu.Combo.Item
+    local ComboItem = self.Menu.Combo.Item
     
     if ComboItem then
     
-      local ComboBRK = Menu.Combo.BRK
-      local BCSTargetDmg = GetDmg("BC", STarget)
-      local BRKSTargetDmg = GetDmg("BRK", STarget)
+      local ComboBRK = self.Menu.Combo.BRK
+      local BCSTargetDmg = self:GetDmg("BC", STarget)
+      local BRKSTargetDmg = self:GetDmg("BRK", STarget)
       
-      if Items["Stalker"].ready and ValidTarget(STarget, S.range) then
-        CastS(STarget)
+      if self.Items["Stalker"].ready and ValidTarget(STarget, self.S.range) then
+        self:CastS(STarget)
       end
       
-      if ComboBRK >= HealthPercent(myHero) then
+      if ComboBRK >= self:HealthPercent(myHero) then
       
-        if Items["BC"].ready and ValidTarget(STarget, Items["BC"].range) then
-          CastBC(STarget)
-        elseif Items["BRK"].ready and ValidTarget(STarget, Items["BRK"].range) then
-          CastBRK(STarget)
+        if self.Items["BC"].ready and ValidTarget(STarget, self.Items["BC"].range) then
+          self:CastBC(STarget)
+        elseif self.Items["BRK"].ready and ValidTarget(STarget, self.Items["BRK"].range) then
+          self:CastBRK(STarget)
         end
         
       end
@@ -681,201 +770,84 @@ end
 
 ---------------------------------------------------------------------------------
 
-function Farm()
+function HTTF_Orianna:Farm()
 
-  local FarmQ = Menu.Clear.Farm.Q
-  local FarmQ2 = Menu.Clear.Farm.Q2
-  local FarmW = Menu.Clear.Farm.W
-  local FarmW2 = Menu.Clear.Farm.W2
-  local FarmE = Menu.Clear.Farm.E
-  local FarmE2 = Menu.Clear.Farm.E2
+  local FarmQ = self.Menu.Clear.Farm.Q
+  local FarmQ2 = self.Menu.Clear.Farm.Q2
+  local FarmW = self.Menu.Clear.Farm.W
+  local FarmW2 = self.Menu.Clear.Farm.W2
+  local FarmE = self.Menu.Clear.Farm.E
+  local FarmE2 = self.Menu.Clear.Farm.E2
   
-  if Q.ready and FarmQ and FarmQ2 <= ManaPercent() then
+  if self.Q.ready and FarmQ and FarmQ2 <= self:ManaPercent() then
     
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local QMinionDmg = .7*GetDmg("Q", minion)
+      local QMinionDmg = .7*self:GetDmg("Q", minion)
       
-      if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius) then
-        CastQ(minion)
+      if QMinionDmg >= minion.health and ValidTarget(minion, self.Q.range+self.Q.radius) then
+        self:CastQ(minion)
       end
       
     end
     
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local AAMinionDmg = GetDmg("AA", minion)
-      local QMinionDmg = GetDmg("Q", minion)
+      local AAMinionDmg = self:GetDmg("AA", minion)
+      local QMinionDmg = self:GetDmg("Q", minion)
       
-      if QMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, Q.range+Q.radius) then
-        CastQ(minion)
+      if QMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, self.Q.range+self.Q.radius) then
+        self:CastQ(minion)
       end
       
     end
     
   end
   
-  if W.ready and FarmW and FarmW2 <= ManaPercent() then
+  if self.W.ready and FarmW and FarmW2 <= self:ManaPercent() then
     
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local WMinionDmg = GetDmg("W", minion)
+      local WMinionDmg = self:GetDmg("W", minion)
       
-      if WMinionDmg >= minion.health and ValidTarget(minion, W.range+W.radius) then
-        CastW(minion)
+      if WMinionDmg >= minion.health and ValidTarget(minion, self.W.range+self.W.radius) then
+        self:CastW(minion)
       end
       
     end
     
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local AAMinionDmg = GetDmg("AA", minion)
-      local WMinionDmg = GetDmg("W", minion)
+      local AAMinionDmg = self:GetDmg("AA", minion)
+      local WMinionDmg = self:GetDmg("W", minion)
       
-      if WMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, W.range+W.radius) then
-        CastW(minion)
-      end
-      
-    end
-    
-  end
-  
-  if E.ready and FarmE and FarmE2 <= ManaPercent() then
-    
-    for i, minion in pairs(EnemyMinions.objects) do
-    
-      local EMinionDmg = GetDmg("E", minion)
-      
-      if EMinionDmg >= minion.health and ValidTarget(minion, E.range) then
-        CastE(minion)
-      end
-      
-    end
-    
-    for i, minion in pairs(EnemyMinions.objects) do
-    
-      local AAMinionDmg = GetDmg("AA", minion)
-      local EMinionDmg = GetDmg("E", minion)
-      
-      if EMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, E.range) then
-        CastE(minion)
+      if WMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, self.W.range+self.W.radius) then
+        self:CastW(minion)
       end
       
     end
     
   end
   
-end
-
----------------------------------------------------------------------------------
-
-function JFarm()
-
-  local JFarmQ = Menu.Clear.JFarm.Q
-  local JFarmQ2 = Menu.Clear.JFarm.Q2
-  local JFarmW = Menu.Clear.JFarm.W
-  local JFarmW2 = Menu.Clear.JFarm.W2
-  local JFarmE = Menu.Clear.JFarm.E
-  local JFarmE2 = Menu.Clear.JFarm.E2
-  
-  if Q.ready and JFarmQ and JFarmQ2 <= ManaPercent() then
-  
-    for i, junglemob in pairs(JungleMobs.objects) do
+  if self.E.ready and FarmE and FarmE2 <= self:ManaPercent() then
     
-      local LargeJunglemob = nil
+    for i, minion in pairs(self.EnemyMinions.objects) do
+    
+      local EMinionDmg = self:GetDmg("E", minion)
       
-      for j = 1, #FocusJungleNames do
-      
-        if junglemob.name == FocusJungleNames[j] then
-          LargeJunglemob = junglemob
-          break
-        end
-        
-      end
-      
-      if LargeJunglemob ~= nil and Ball ~= nil and E.ready and JFarmE and JFarmQ2+JFarmE2 <= ManaPercent() and .95*GetDistance(LargeJunglemob, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(LargeJunglemob, myHero)/1200 then
-        CastEMe()
-      end
-      
-      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= Q.range+Q.radius and ValidTarget(LargeJunglemob, Q.range+Q.radius) then
-        CastQ(LargeJunglemob)
-        return
+      if EMinionDmg >= minion.health and ValidTarget(minion, self.E.range) then
+        self:CastE(minion)
       end
       
     end
     
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      if ValidTarget(junglemob, Q.range+Q.radius) then
-        CastQ(junglemob)
-      end
+      local AAMinionDmg = self:GetDmg("AA", minion)
+      local EMinionDmg = self:GetDmg("E", minion)
       
-      if junglemob ~= nil and Ball ~= nil and E.ready and JFarmE and JFarmQ2+JFarmE2 <= ManaPercent() and .95*GetDistance(junglemob, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(junglemob, myHero)/1200 then
-        CastEMe()
-      end
-      
-    end
-    
-  end
-  
-  if W.ready and JFarmW and JFarmW2 <= ManaPercent() then
-  
-    for i, junglemob in pairs(JungleMobs.objects) do
-    
-      local LargeJunglemob = nil
-      
-      for j = 1, #FocusJungleNames do
-      
-        if junglemob.name == FocusJungleNames[j] then
-          LargeJunglemob = junglemob
-          break
-        end
-        
-      end
-      
-      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= W.range+W.radius and ValidTarget(LargeJunglemob, W.range+W.radius) then
-        CastW(LargeJunglemob)
-        return
-      end
-      
-    end
-    
-    for i, junglemob in pairs(JungleMobs.objects) do
-    
-      if ValidTarget(junglemob, W.range+W.radius) then
-        CastW(junglemob)
-      end
-      
-    end
-    
-  end
-  
-  if E.ready and JFarmE and JFarmE2 <= ManaPercent() then
-  
-    for i, junglemob in pairs(JungleMobs.objects) do
-    
-      local LargeJunglemob = nil
-      
-      for j = 1, #FocusJungleNames do
-      
-        if junglemob.name == FocusJungleNames[j] then
-          LargeJunglemob = junglemob
-          break
-        end
-        
-      end
-      
-      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= E.range and ValidTarget(LargeJunglemob, E.range) then
-        CastE(LargeJunglemob)
-        return
-      end
-      
-    end
-    
-    for i, junglemob in pairs(JungleMobs.objects) do
-    
-      if ValidTarget(junglemob, E.range) then
-        CastE(junglemob)
+      if EMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, self.E.range) then
+        self:CastE(minion)
       end
       
     end
@@ -886,163 +858,280 @@ end
 
 ---------------------------------------------------------------------------------
 
-function All()
+function HTTF_Orianna:JFarm()
+
+  local JFarmQ = self.Menu.Clear.JFarm.Q
+  local JFarmQ2 = self.Menu.Clear.JFarm.Q2
+  local JFarmW = self.Menu.Clear.JFarm.W
+  local JFarmW2 = self.Menu.Clear.JFarm.W2
+  local JFarmE = self.Menu.Clear.JFarm.E
+  local JFarmE2 = self.Menu.Clear.JFarm.E2
+  
+  if self.Q.ready and JFarmQ and JFarmQ2 <= self:ManaPercent() then
+  
+    for i, junglemob in pairs(self.JungleMobs.objects) do
+    
+      local LargeJunglemob = nil
+      
+      for j = 1, #self.FocusJungleNames do
+      
+        if junglemob.name == self.FocusJungleNames[j] then
+          LargeJunglemob = junglemob
+          break
+        end
+        
+      end
+      
+      if LargeJunglemob ~= nil and self.Ball ~= nil and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() and .95*GetDistance(LargeJunglemob, self.Ball)/1200 > GetDistance(myHero, self.Ball)/1800+GetDistance(LargeJunglemob, myHero)/1200 then
+        self:CastEMe()
+      end
+      
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= self.Q.range+self.Q.radius and ValidTarget(LargeJunglemob, self.Q.range+self.Q.radius) then
+        self:CastQ(LargeJunglemob)
+        return
+      end
+      
+    end
+    
+    for i, junglemob in pairs(self.JungleMobs.objects) do
+    
+      if ValidTarget(junglemob, self.Q.range+self.Q.radius) then
+        self:CastQ(junglemob)
+      end
+      
+      if junglemob ~= nil and self.Ball ~= nil and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() and .95*GetDistance(junglemob, self.Ball)/1200 > GetDistance(myHero, self.Ball)/1800+GetDistance(junglemob, myHero)/1200 then
+        self:CastEMe()
+      end
+      
+    end
+    
+  end
+  
+  if self.W.ready and JFarmW and JFarmW2 <= self:ManaPercent() then
+  
+    for i, junglemob in pairs(self.JungleMobs.objects) do
+    
+      local LargeJunglemob = nil
+      
+      for j = 1, #self.FocusJungleNames do
+      
+        if junglemob.name == self.FocusJungleNames[j] then
+          LargeJunglemob = junglemob
+          break
+        end
+        
+      end
+      
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= self.W.range+self.W.radius and ValidTarget(LargeJunglemob, self.W.range+self.W.radius) then
+        self:CastW(LargeJunglemob)
+        return
+      end
+      
+    end
+    
+    for i, junglemob in pairs(self.JungleMobs.objects) do
+    
+      if ValidTarget(junglemob, self.W.range+self.W.radius) then
+        self:CastW(junglemob)
+      end
+      
+    end
+    
+  end
+  
+  if self.E.ready and JFarmE and JFarmE2 <= self:ManaPercent() then
+  
+    for i, junglemob in pairs(self.JungleMobs.objects) do
+    
+      local LargeJunglemob = nil
+      
+      for j = 1, #self.FocusJungleNames do
+      
+        if junglemob.name == self.FocusJungleNames[j] then
+          LargeJunglemob = junglemob
+          break
+        end
+        
+      end
+      
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= self.E.range and ValidTarget(LargeJunglemob, self.E.range) then
+        self:CastE(LargeJunglemob)
+        return
+      end
+      
+    end
+    
+    for i, junglemob in pairs(self.JungleMobs.objects) do
+    
+      if ValidTarget(junglemob, self.E.range) then
+        self:CastE(junglemob)
+      end
+      
+    end
+    
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function HTTF_Orianna:All()
 
   MoveToMouse()
   
-  if Q.ready then
+  if self.Q.ready then
   
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local QMinionDmg = .7*GetDmg("Q", minion)
+      local QMinionDmg = .7*self:GetDmg("Q", minion)
       
-      if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius) then
-        CastQ(minion)
+      if QMinionDmg >= minion.health and ValidTarget(minion, self.Q.range+self.Q.radius) then
+        self:CastQ(minion)
       end
       
     end
     
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local AAMinionDmg = GetDmg("AA", minion)
-      local QMinionDmg = GetDmg("Q", minion)
+      local AAMinionDmg = self:GetDmg("AA", minion)
+      local QMinionDmg = self:GetDmg("Q", minion)
       
-      if QMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, Q.range+Q.radius) then
-        CastQ(minion)
+      if QMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, self.Q.range+self.Q.radius) then
+        self:CastQ(minion)
       end
       
     end
   
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
       local LargeJunglemob = nil
       
-      for j = 1, #FocusJungleNames do
+      for j = 1, #self.FocusJungleNames do
       
-        if junglemob.name == FocusJungleNames[j] then
+        if junglemob.name == self.FocusJungleNames[j] then
           LargeJunglemob = junglemob
           break
         end
         
       end
       
-      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= Q.range+Q.radius and ValidTarget(LargeJunglemob, Q.range+Q.radius) then
-        CastQ(LargeJunglemob)
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= self.Q.range+self.Q.radius and ValidTarget(LargeJunglemob, self.Q.range+self.Q.radius) then
+        self:CastQ(LargeJunglemob)
         return
       end
       
     end
     
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
-      if ValidTarget(junglemob, Q.range+Q.radius) then
-        CastQ(junglemob)
+      if ValidTarget(junglemob, self.Q.range+self.Q.radius) then
+        self:CastQ(junglemob)
       end
       
     end
     
   end
   
-  if W.ready then
+  if self.W.ready then
   
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local WMinionDmg = GetDmg("W", minion)
+      local WMinionDmg = self:GetDmg("W", minion)
       
-      if WMinionDmg >= minion.health and ValidTarget(minion, W.range+W.radius) then
-        CastW(minion)
+      if WMinionDmg >= minion.health and ValidTarget(minion, self.W.range+self.W.radius) then
+        self:CastW(minion)
       end
       
     end
     
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local AAMinionDmg = GetDmg("AA", minion)
-      local WMinionDmg = GetDmg("W", minion)
+      local AAMinionDmg = self:GetDmg("AA", minion)
+      local WMinionDmg = self:GetDmg("W", minion)
       
-      if WMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, W.range+W.radius) then
-        CastW(minion)
+      if WMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, self.W.range+self.W.radius) then
+        self:CastW(minion)
       end
       
     end
     
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
       local LargeJunglemob = nil
       
-      for j = 1, #FocusJungleNames do
+      for j = 1, #self.FocusJungleNames do
       
-        if junglemob.name == FocusJungleNames[j] then
+        if junglemob.name == self.FocusJungleNames[j] then
           LargeJunglemob = junglemob
           break
         end
         
       end
       
-      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= W.range+W.radius and ValidTarget(LargeJunglemob, W.range+W.radius) then
-        CastW(LargeJunglemob)
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= self.W.range+self.W.radius and ValidTarget(LargeJunglemob, self.W.range+self.W.radius) then
+        self:CastW(LargeJunglemob)
         return
       end
       
     end
     
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
-      if ValidTarget(junglemob, W.range+W.radius) then
-        CastW(junglemob)
+      if ValidTarget(junglemob, self.W.range+self.W.radius) then
+        self:CastW(junglemob)
       end
       
     end
     
   end
   
-  if E.ready then
+  if self.E.ready then
   
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local EMinionDmg = GetDmg("E", minion)
+      local EMinionDmg = self:GetDmg("E", minion)
       
-      if EMinionDmg >= minion.health and ValidTarget(minion, E.range) then
-        CastE(minion)
+      if EMinionDmg >= minion.health and ValidTarget(minion, self.E.range) then
+        self:CastE(minion)
       end
       
     end
     
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local AAMinionDmg = GetDmg("AA", minion)
-      local EMinionDmg = GetDmg("E", minion)
+      local AAMinionDmg = self:GetDmg("AA", minion)
+      local EMinionDmg = self:GetDmg("E", minion)
       
-      if EMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, E.range) then
-        CastE(minion)
+      if EMinionDmg+2.5*AAMinionDmg <= minion.health and ValidTarget(minion, self.E.range) then
+        self:CastE(minion)
       end
       
     end
     
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
       local LargeJunglemob = nil
       
-      for j = 1, #FocusJungleNames do
+      for j = 1, #self.FocusJungleNames do
       
-        if junglemob.name == FocusJungleNames[j] then
+        if junglemob.name == self.FocusJungleNames[j] then
           LargeJunglemob = junglemob
           break
         end
         
       end
       
-      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= E.range and ValidTarget(LargeJunglemob, E.range) then
-        CastE(LargeJunglemob)
+      if LargeJunglemob ~= nil and GetDistance(LargeJunglemob, mousePos) <= self.E.range and ValidTarget(LargeJunglemob, self.E.range) then
+        self:CastE(LargeJunglemob)
         return
       end
       
     end
     
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
-      if ValidTarget(junglemob, E.range) then
-        CastE(junglemob)
+      if ValidTarget(junglemob, self.E.range) then
+        self:CastE(junglemob)
       end
       
     end
@@ -1053,28 +1142,31 @@ end
 
 ---------------------------------------------------------------------------------
 
-function Harass()
+function HTTF_Orianna:Harass()
 
-  if QTarget ~= nil then
+  local HarassW = self.Menu.Harass.W
+  local HarassW2 = self.Menu.Harass.W2
   
-    local HarassQ = Menu.Harass.Q
-    local HarassQ2 = Menu.Harass.Q2
-    local HarassE = Menu.Harass.E
-    local HarassE2 = Menu.Harass.E2
+  if self.QTarget ~= nil then
+  
+    local HarassQ = self.Menu.Harass.Q
+    local HarassQ2 = self.Menu.Harass.Q2
+    local HarassE = self.Menu.Harass.E
+    local HarassE2 = self.Menu.Harass.E2
     
-    if Q.ready and HarassQ and HarassQ2 <= ManaPercent() then
-      QHitChance = nil
+    if self.Q.ready and HarassQ and HarassQ2 <= self:ManaPercent() then
+      self.QHitChance = nil
       
-      if ValidTarget(QTarget, Q.range+Q.radius) then
-        CastQ(QTarget, "Harass")
+      if ValidTarget(self.QTarget, self.Q.range+self.Q.radius) then
+        self:CastQ(self.QTarget, "Harass")
       end
       
-      if QHitChance == 0 then
+      if self.QHitChance == 0 then
       
-        for i, enemy in ipairs(EnemyHeroes) do
+        for i, enemy in ipairs(self.GetEnemyHeroes) do
         
-          if ValidTarget(enemy, Q.range+Q.radius) then
-            CastQ(QTarget, "Harass")
+          if ValidTarget(enemy, self.Q.range+self.Q.radius) then
+            self:CastQ(self.QTarget, "Harass")
           end
           
         end
@@ -1083,42 +1175,43 @@ function Harass()
       
     end
     
-    if Ball ~= nil and QHitChance ~= nil and QHitChance >= Menu.HitChance.Harass.Q and Q.ready and E.ready and HarassQ and HarassE and HarassQ2+HarassE2 <= ManaPercent() and .95*GetDistance(QTarget, Ball)/1200 > GetDistance(myHero, Ball)/1800+GetDistance(QTarget, myHero)/1200 then
-      CastEMe()
+    if self.Ball ~= nil and self.QHitChance ~= nil and self.QHitChance >= self.Menu.HitChance.Harass.Q and self.Q.ready and self.E.ready and HarassQ and HarassE and HarassQ2+HarassE2 <= self:ManaPercent() and .95*GetDistance(self.QTarget, self.Ball)/1200 > GetDistance(myHero, self.Ball)/1800+GetDistance(self.QTarget, myHero)/1200 then
+      self:CastEMe()
     end
     
   end
   
-  local HarassW = Menu.Harass.W
-  local HarassW2 = Menu.Harass.W2
+  if self.W.ready and HarassW and HarassW2 <= self:ManaPercent() then
   
-  for i, enemy in ipairs(EnemyHeroes) do
-  
-    if W.ready and HarassW and HarassW2 <= ManaPercent() and ValidTarget(enemy, W.range+W.radius) then
-      CastW(enemy, "Harass")
-    end
+    for i, enemy in ipairs(self.GetEnemyHeroes) do
     
-  end
-  
-  if ETarget ~= nil then
-  
-    local HarassE = Menu.Harass.E
-    local HarassE2 = Menu.Harass.E2
-    local HarassE3 = Menu.Harass.E3
-    
-    if E.ready and HarassE and HarassE2 <= ManaPercent() and (not HarassE3 or HarassE3 and EnemyHeroesCount(600) ~= 0) then
-      EHitChance = nil
-      
-      if ValidTarget(ETarget, E.range) then
-        CastE(ETarget)
+      if ValidTarget(enemy, self.W.range+self.W.radius) then
+        self:CastW(enemy, "Harass")
       end
       
-      if EHitChance == 0 then
+    end
+    
+  end
+  
+  if self.ETarget ~= nil then
+  
+    local HarassE = self.Menu.Harass.E
+    local HarassE2 = self.Menu.Harass.E2
+    local HarassE3 = self.Menu.Harass.E3
+    
+    if self.E.ready and HarassE and HarassE2 <= self:ManaPercent() and (not HarassE3 or HarassE3 and self.EnemyHeroesCount(600) ~= 0) then
+      self.EHit = false
       
-        for i, enemy in ipairs(EnemyHeroes) do
+      if ValidTarget(self.ETarget, self.E.range) then
+        self:CastE(self.ETarget)
+      end
+      
+      if self.EHit == false then
+      
+        for i, enemy in ipairs(self.GetEnemyHeroes) do
         
-          if ValidTarget(enemy, E.range) then
-            CastE(enemy)
+          if ValidTarget(enemy, self.E.range) then
+            self:CastE(enemy)
           end
           
         end
@@ -1133,51 +1226,51 @@ end
 
 ---------------------------------------------------------------------------------
 
-function LastHit()
+function HTTF_Orianna:LastHit()
 
-  local LastHitQ = Menu.LastHit.Q
-  local LastHitQ2 = Menu.LastHit.Q2
-  local LastHitW = Menu.LastHit.W
-  local LastHitW2 = Menu.LastHit.W2
-  local LastHitE = Menu.LastHit.E
-  local LastHitE2 = Menu.LastHit.E2
+  local LastHitQ = self.Menu.LastHit.Q
+  local LastHitQ2 = self.Menu.LastHit.Q2
+  local LastHitW = self.Menu.LastHit.W
+  local LastHitW2 = self.Menu.LastHit.W2
+  local LastHitE = self.Menu.LastHit.E
+  local LastHitE2 = self.Menu.LastHit.E2
   
-  if Q.ready and LastHitQ and LastHitQ2 <= ManaPercent() then
+  if self.Q.ready and LastHitQ and LastHitQ2 <= self:ManaPercent() then
   
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local QMinionDmg = .7*GetDmg("Q", minion)
+      local QMinionDmg = .7*self:GetDmg("Q", minion)
       
-      if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+Q.radius) then
-        CastQ(minion)
+      if QMinionDmg >= minion.health and ValidTarget(minion, self.Q.range+self.Q.radius) then
+        self:CastQ(minion)
       end
       
     end
     
   end
   
-  if W.ready and LastHitW and LastHitW2 <= ManaPercent() then
+  if self.W.ready and LastHitW and LastHitW2 <= self:ManaPercent() then
   
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local WMinionDmg = GetDmg("W", minion)
+      local WMinionDmg = self:GetDmg("W", minion)
       
-      if WMinionDmg >= minion.health and ValidTarget(minion, W.range+W.radius) then
-        CastW(minion)
+      if WMinionDmg >= minion.health and ValidTarget(minion, self.W.range+self.W.radius) then
+        self:CastW(minion)
       end
       
     end
     
   end
   
-  if E.ready and LastHitE and LastHitE2 <= ManaPercent() then
+  if self.E.ready and LastHitE and LastHitE2 <= self:ManaPercent() then
   
-    for i, minion in pairs(EnemyMinions.objects) do
+    for i, minion in pairs(self.EnemyMinions.objects) do
     
-      local EMinionDmg = GetDmg("E", minion)
+      local EMinionDmg = self:GetDmg("E", minion)
       
-      if EMinionDmg >= minion.health and ValidTarget(minion, E.range) then
-        CastE(minion)
+      if EMinionDmg >= minion.health and ValidTarget(minion, self.E.range) then
+        self:CastE(minion)
       end
       
     end
@@ -1188,23 +1281,23 @@ end
 
 ---------------------------------------------------------------------------------
 
-function JSteal()
+function HTTF_Orianna:JSteal()
 
-  local JStealQ = Menu.JSteal.Q
-  local JStealW = Menu.JSteal.W
-  local JStealE = Menu.JSteal.E
-  local JStealS = Menu.JSteal.S
+  local JStealQ = self.Menu.JSteal.Q
+  local JStealW = self.Menu.JSteal.W
+  local JStealE = self.Menu.JSteal.E
+  local JStealS = self.Menu.JSteal.S
   
-  if S.ready and JStealS then
+  if self.S.ready and JStealS then
   
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
           
-      local SJunglemobDmg = GetDmg("SMITE", junglemob)
+      local SJunglemobDmg = self:GetDmg("SMITE", junglemob)
       
-      for j = 1, #FocusJungleNames do
+      for j = 1, #self.FocusJungleNames do
       
-        if junglemob.name == FocusJungleNames[j] and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
-          CastS(junglemob)
+        if junglemob.name == self.FocusJungleNames[j] and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, self.S.range) then
+          self:CastS(junglemob)
           return
         end
         
@@ -1214,16 +1307,16 @@ function JSteal()
     
   end
   
-  if Q.ready and JStealQ then
+  if self.Q.ready and JStealQ then
   
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
-      local QJunglemobDmg = .8*GetDmg("Q", junglemob)
+      local QJunglemobDmg = .8*self:GetDmg("Q", junglemob)
       
-      for j = 1, #FocusJungleNames do
+      for j = 1, #self.FocusJungleNames do
       
-        if junglemob.name == FocusJungleNames[j] and QJunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.range+Q.radius) then
-          CastQ(junglemob)
+        if junglemob.name == self.FocusJungleNames[j] and QJunglemobDmg >= junglemob.health and ValidTarget(junglemob, self.Q.range+self.Q.radius) then
+          self:CastQ(junglemob)
         end
         
       end
@@ -1232,16 +1325,16 @@ function JSteal()
     
   end
   
-  if W.ready and JStealW then
+  if self.W.ready and JStealW then
   
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
-      local WJunglemobDmg = GetDmg("W", junglemob)
+      local WJunglemobDmg = self:GetDmg("W", junglemob)
       
-      for j = 1, #FocusJungleNames do
+      for j = 1, #self.FocusJungleNames do
       
-        if junglemob.name == FocusJungleNames[j] and WJunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.range+W.radius) then
-          CastW(junglemob)
+        if junglemob.name == self.FocusJungleNames[j] and WJunglemobDmg >= junglemob.health and ValidTarget(junglemob, self.W.range+self.W.radius) then
+          self:CastW(junglemob)
         end
         
       end
@@ -1250,16 +1343,16 @@ function JSteal()
     
   end
   
-  if E.ready and JStealE then
+  if self.E.ready and JStealE then
   
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
-      local EJunglemobDmg = GetDmg("E", junglemob)
+      local EJunglemobDmg = self:GetDmg("E", junglemob)
       
-      for j = 1, #FocusJungleNames do
+      for j = 1, #self.FocusJungleNames do
       
-        if junglemob.name == FocusJungleNames[j] and EJunglemobDmg >= junglemob.health and ValidTarget(junglemob, E.range) then
-          CastE(junglemob)
+        if junglemob.name == self.FocusJungleNames[j] and EJunglemobDmg >= junglemob.health and ValidTarget(junglemob, self.E.range) then
+          self:CastE(junglemob)
         end
         
       end
@@ -1272,18 +1365,18 @@ end
 
 ---------------------------------------------------------------------------------
 
-function JstealAlways()
+function HTTF_Orianna:JstealAlways()
 
-  if S.ready then
+  if self.S.ready then
   
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
-      local SJunglemobDmg = GetDmg("SMITE", junglemob)
+      local SJunglemobDmg = self:GetDmg("SMITE", junglemob)
       
-      for j = 1, #FocusJungleNames do
+      for j = 1, #self.FocusJungleNames do
       
-        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, S.range) then
-          CastS(junglemob)
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and SJunglemobDmg >= junglemob.health and ValidTarget(junglemob, self.S.range) then
+          self:CastS(junglemob)
           return
         end
         
@@ -1293,16 +1386,16 @@ function JstealAlways()
     
   end
   
-  if Q.ready then
+  if self.Q.ready then
   
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
-      local QJunglemobDmg = GetDmg("Q", junglemob)
+      local QJunglemobDmg = self:GetDmg("Q", junglemob)
       
-      for j = 1, #FocusJungleNames do
+      for j = 1, #self.FocusJungleNames do
       
-        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and QJunglemobDmg >= junglemob.health and ValidTarget(junglemob, Q.range+Q.radius) then
-          CastQ(junglemob)
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and QJunglemobDmg >= junglemob.health and ValidTarget(junglemob, self.Q.range+self.Q.radius) then
+          self:CastQ(junglemob)
         end
         
       end
@@ -1311,16 +1404,16 @@ function JstealAlways()
     
   end
   
-  if W.ready then
+  if self.W.ready then
   
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
-      local WJunglemobDmg = GetDmg("W", junglemob)
+      local WJunglemobDmg = self:GetDmg("W", junglemob)
       
-      for j = 1, #FocusJungleNames do
+      for j = 1, #self.FocusJungleNames do
       
-        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and WJunglemobDmg >= junglemob.health and ValidTarget(junglemob, W.range+W.radius) then
-          CastW(junglemob)
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and WJunglemobDmg >= junglemob.health and ValidTarget(junglemob, self.W.range+self.W.radius) then
+          self:CastW(junglemob)
         end
         
       end
@@ -1329,16 +1422,16 @@ function JstealAlways()
     
   end
   
-  if E.ready then
+  if self.E.ready then
   
-    for i, junglemob in pairs(JungleMobs.objects) do
+    for i, junglemob in pairs(self.JungleMobs.objects) do
     
-      local EJunglemobDmg = GetDmg("E", junglemob)
+      local EJunglemobDmg = self:GetDmg("E", junglemob)
       
-      for j = 1, #FocusJungleNames do
+      for j = 1, #self.FocusJungleNames do
       
-        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and EJunglemobDmg >= junglemob.health and ValidTarget(junglemob, E.range) then
-          CastE(junglemob)
+        if (junglemob.name == "SRU_Baron12.1.1" or junglemob.name == "SRU_Dragon6.1.1") and EJunglemobDmg >= junglemob.health and ValidTarget(junglemob, self.E.range) then
+          self:CastE(junglemob)
         end
         
       end
@@ -1351,47 +1444,47 @@ end
 
 ---------------------------------------------------------------------------------
 
-function KillSteal()
+function HTTF_Orianna:KillSteal()
 
-  local KillStealQ = Menu.KillSteal.Q
-  local KillStealW = Menu.KillSteal.W
-  local KillStealE = Menu.KillSteal.E
-  local KillStealR = Menu.KillSteal.R
-  local KillStealI = Menu.KillSteal.I
-  local KillStealS = Menu.KillSteal.S
+  local KillStealQ = self.Menu.KillSteal.Q
+  local KillStealW = self.Menu.KillSteal.W
+  local KillStealE = self.Menu.KillSteal.E
+  local KillStealR = self.Menu.KillSteal.R
+  local KillStealI = self.Menu.KillSteal.I
+  local KillStealS = self.Menu.KillSteal.S
   
-  for i, enemy in ipairs(EnemyHeroes) do
+  for i, enemy in ipairs(self.GetEnemyHeroes) do
   
-    local QenemyDmg = .7*GetDmg("Q", enemy)
-    local WenemyDmg = GetDmg("W", enemy)
-    local EenemyDmg = GetDmg("E", enemy)
-    local RenemyDmg = GetDmg("R", enemy)
-    local IenemyDmg = GetDmg("IGNITE", enemy)
-    local SBenemyDmg = GetDmg("STALKER", enemy)
+    local QenemyDmg = .7*self:GetDmg("Q", enemy)
+    local WenemyDmg = self:GetDmg("W", enemy)
+    local EenemyDmg = self:GetDmg("E", enemy)
+    local RenemyDmg = self:GetDmg("R", enemy)
+    local IenemyDmg = self:GetDmg("IGNITE", enemy)
+    local SBenemyDmg = self:GetDmg("STALKER", enemy)
     
-    if I.ready and KillStealI and IenemyDmg >= enemy.health and ValidTarget(enemy, I.range) then
-      CastI(enemy)
+    if self.I.ready and KillStealI and IenemyDmg >= enemy.health and ValidTarget(enemy, self.I.range) then
+      self:CastI(enemy)
     end
     
-    if Items["Stalker"].ready and KillStealS and SBenemyDmg >= enemy.health and ValidTarget(enemy, S.range) then
-      CastS(enemy)
+    if self.Items["Stalker"].ready and KillStealS and SBenemyDmg >= enemy.health and ValidTarget(enemy, self.S.range) then
+      self:CastS(enemy)
       return
     end
     
-    if Q.ready and KillStealQ and QenemyDmg >= enemy.health and ValidTarget(enemy, Q.range+Q.radius) then
-      CastQ(enemy)
+    if self.Q.ready and KillStealQ and QenemyDmg >= enemy.health and ValidTarget(enemy, self.Q.range+self.Q.radius) then
+      self:CastQ(enemy)
     end
     
-    if W.ready and KillStealW and WenemyDmg >= enemy.health and ValidTarget(enemy, W.range+W.radius) then
-      CastW(enemy)
+    if self.W.ready and KillStealW and WenemyDmg >= enemy.health and ValidTarget(enemy, self.W.range+self.W.radius) then
+      self:CastW(enemy)
     end
     
-    if E.ready and KillStealE and EenemyDmg >= enemy.health and ValidTarget(enemy, E.range) then
-      CastE(enemy)
+    if self.E.ready and KillStealE and EenemyDmg >= enemy.health and ValidTarget(enemy, self.E.range) then
+      self:CastE(enemy)
     end
     
-    if R.ready and KillStealR and RenemyDmg >= enemy.health and ValidTarget(enemy, R.range+R.radius) then
-      CastR(enemy)
+    if self.R.ready and KillStealR and RenemyDmg >= enemy.health and ValidTarget(enemy, self.R.range+self.R.radius) then
+      self:CastR(enemy)
     end
     
   end
@@ -1399,12 +1492,202 @@ function KillSteal()
 end
 
 ---------------------------------------------------------------------------------
-
-function Flee()
-
-  MoveToMouse()
+function HTTF_Orianna:Auto()
   
-  if W.ready and Ball == myHero then
+  local AutoW = self.Menu.Auto.W
+  local AutoW2 = self.Menu.Auto.W2
+  local AutoW3 = self.Menu.Auto.W3
+  local AutoWR = self.Menu.Combo.R
+  local AutoW2 = self.Menu.Combo.R2
+  local AutoWR3 = self.Menu.Combo.R3
+
+  if self.QTarget ~= nil then
+  
+    local ComboQ = self.Menu.Combo.Q
+    local ComboQ2 = self.Menu.Combo.Q2
+    
+    if self.Q.ready and ComboQ and ComboQ2 <= self:ManaPercent() then
+    
+      if ValidTarget(self.QTarget, self.Q.range+self.Q.radius) then
+        self:CastQ(self.QTarget, "Combo")
+      end
+      
+      for i, enemy in ipairs(self.GetEnemyHeroes) do
+      
+        if ValidTarget(enemy, self.Q.range+self.Q.radius) then
+          self:CastQ(enemy, "Combo")
+        end
+        
+      end
+      
+    end
+    
+    if self.Ball ~= nil and self.Q.ready and self.E.ready and ComboQ and ComboE and ComboQ2+ComboE2 <= self:ManaPercent() and .95*GetDistance(self.QTarget, self.Ball)/1200 > GetDistance(myHero, self.Ball)/1800+GetDistance(self.QTarget, myHero)/1200 then
+      self:CastEMe()
+    end
+    
+  end
+  
+  if self.W.ready and ComboW and ComboW2 <= self:ManaPercent() then
+  
+    for i, enemy in ipairs(self.GetEnemyHeroes) do
+    
+      if ValidTarget(enemy, self.W.range+self.W.radius) then
+        self:CastW(enemy, "Combo")
+      end
+      
+    end
+    
+  end
+  
+  if self.ETarget ~= nil then
+  
+    local ComboE3 = self.Menu.Combo.E3
+    
+    if self.E.ready and ComboE and ComboE2 <= self:ManaPercent() and (not ComboE3 or ComboE3 and self.EnemyHeroesCount(600) ~= 0) then
+    
+      if ValidTarget(self.ETarget, self.E.range) then
+        self:CastE(self.ETarget)
+      end
+      
+      for i, enemy in ipairs(self.GetEnemyHeroes) do
+      
+        if ValidTarget(enemy, self.E.range) then
+          self:CastE(enemy)
+        end
+        
+      end
+      
+    end
+    
+  end
+  
+  if self.E.ready and self.R.ready and ComboE and ComboE2+ComboR3 <= self:ManaPercent() then
+  
+    local breakfor = false
+    
+    for i, ally in ipairs(self.GetAllyHeroes) do
+    
+      for j, enemy in ipairs(self.GetEnemyHeroes) do
+      
+        if ValidTarget(enemy, self.R.range+self.R.radius) then
+        
+          local RPos, RHitChance, RNoH = self.HPred:GetPredict("R", enemy, ally, true)
+          
+          if ComboR then
+          
+            local QenemyDmg = self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)
+            local WenemyDmg = self.W.ready and self:GetDmg("W", enemy) or 0
+            local RenemyDmg = self:GetDmg("R", enemy)
+            
+            if QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and RHitChance >= self.Menu.HitChance.Combo.R then
+              self:GiveE(ally)
+              breakfor = true
+              break
+            end
+            
+          end
+          
+          if ComboR2 and RNoH >= self.Menu.Combo.R4 then
+            breakfor = true
+            self:GiveE(ally)
+             break
+          end
+          
+        end
+        
+      end
+      
+      if breakfor then
+        break
+      end
+      
+    end
+    
+  end
+  
+  if self.R.ready and ComboR3 <= self:ManaPercent() then
+  
+    for i, enemy in ipairs(self.GetEnemyHeroes) do
+    
+      if ValidTarget(enemy, self.R.range+self.R.radius) then
+      
+        if ComboR then
+        
+          local QenemyDmg = self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)
+          local WenemyDmg = self.W.ready and self:GetDmg("W", enemy) or 0
+          local RenemyDmg = self:GetDmg("R", enemy)
+          
+          if QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
+            self:CastR(enemy, "ComboS")
+          end
+          
+        end
+        
+        if ComboR2 then
+          self:CastR(enemy, "ComboM")
+        end
+        
+      end
+      
+    end
+    
+  end
+  
+  if STarget ~= nil then
+  
+    local ComboItem = self.Menu.Combo.Item
+    
+    if ComboItem then
+    
+      local ComboBRK = self.Menu.Combo.BRK
+      local BCSTargetDmg = self:GetDmg("BC", STarget)
+      local BRKSTargetDmg = self:GetDmg("BRK", STarget)
+      
+      if self.Items["Stalker"].ready and ValidTarget(STarget, self.S.range) then
+        self:CastS(STarget)
+      end
+      
+      if ComboBRK >= self:HealthPercent(myHero) then
+      
+        if self.Items["BC"].ready and ValidTarget(STarget, self.Items["BC"].range) then
+          self:CastBC(STarget)
+        elseif self.Items["BRK"].ready and ValidTarget(STarget, self.Items["BRK"].range) then
+          self:CastBRK(STarget)
+        end
+        
+      end
+      
+    end
+    
+  end
+  
+  self.Menu:addSubMenu("Auto Settings", "Auto")
+    self.Menu.Auto:addParam("On", "Auto", SCRIPT_PARAM_ONOFF, true)
+      self.Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Auto:addParam("W", "Use W (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Auto:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    self.Menu.Auto:addParam("W3", "and Use W Min Count (2)", SCRIPT_PARAM_SLICE, 2, 2, 5, 0)
+      self.Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    --self.Menu.Auto:addParam("E", "Use E to defend from targeted spells", SCRIPT_PARAM_ONOFF, true)
+    --self.Menu.Auto:addParam("E2", "Use E if Mana Percent > x% (80)", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
+    --self.Menu.Auto:addParam("E3", "or Use E if Health Percent < x% (40)", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
+      --self.Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Auto:addParam("R", "Use R (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Auto:addParam("R2", "and Use R if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    self.Menu.Auto:addParam("R3", "and Use R Min Count (4)", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
+    
+  self.Menu:addSubMenu("Flee Settings", "Flee")
+    self.Menu.Flee:addParam("On", "Flee", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
+    
+end
+---------------------------------------------------------------------------------
+
+function HTTF_Orianna:Flee()
+
+  self:MoveToMouse()
+  
+  if self.W.ready and self.Ball == myHero then
     CastSpell(_W)
   end
   
@@ -1412,11 +1695,11 @@ end
 
 ---------------------------------------------------------------------------------
 
-function EnemyHeroesCount(range)
+function HTTF_Orianna:EnemyHeroesCount(range)
 
   local count = 0
   
-  for i, enemy in ipairs(EnemyHeroes) do
+  for i, enemy in ipairs(self.GetEnemyHeroes) do
   
     if enemy ~= nil and ValidTarget(enemy, range) then
       count = count + 1
@@ -1429,17 +1712,17 @@ end
 
 ---------------------------------------------------------------------------------
 
-function HealthPercent(unit)
+function HTTF_Orianna:HealthPercent(unit)
   return (unit.health/unit.maxHealth)*100
 end
 
-function ManaPercent()
+function HTTF_Orianna:ManaPercent()
   return (myHero.mana/myHero.maxMana)*100
 end
 
 ---------------------------------------------------------------------------------
 
-function GetDmg(spell, enemy)
+function HTTF_Orianna:GetDmg(spell, enemy)
 
   if enemy == nil then
     return
@@ -1503,13 +1786,13 @@ function GetDmg(spell, enemy)
   elseif spell == "AA" then
     ADDmg = TotalDmg
   elseif spell == "Q" then
-    APDmg = 30*Q.level+30+.5*AP
+    APDmg = 30*self.Q.level+30+.5*AP
   elseif spell == "W" then
-    APDmg = 45*W.level+25+.7*AP
+    APDmg = 45*self.W.level+25+.7*AP
   elseif spell == "E" then
-    ADDmg = 30*E.level+30+.3*AP
+    ADDmg = 30*self.E.level+30+.3*AP
   elseif spell == "R" then
-    APDmg = 75*R.level+75+.7*AP
+    APDmg = 75*self.R.level+75+.7*AP
   end
   
   local TrueDmg = ADDmg*(1-ArmorPercent)+APDmg*(1-MagicArmorPercent)
@@ -1520,20 +1803,20 @@ end
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function CastQ(unit, mode)
+function HTTF_Orianna:CastQ(unit, mode)
 
-  if unit.dead or Ball == nil then
+  if unit.dead or self.Ball == nil then
     return
   end
   
-  QPos, QHitChance = HPred:GetPredict("Q", unit, Ball)
+  self.QPos, self.QHitChance = self.HPred:GetPredict("Q", unit, self.Ball)
   
-  if mode == "Combo" and QHitChance >= Menu.HitChance.Combo.Q or mode == "Harass" and QHitChance >= Menu.HitChance.Harass.Q or mode == nil and QHitChance >= 1 then
+  if mode == "Combo" and self.QHitChance >= self.Menu.HitChance.Combo.Q or mode == "Harass" and self.QHitChance >= self.Menu.HitChance.Harass.Q or mode == nil and self.QHitChance >= 1 then
   
-    if VIP_USER and Menu.Misc.UsePacket then
-      Packet("S_CAST", {spellId = _Q, toX = QPos.x, toY = QPos.z, fromX = QPos.x, fromY = QPos.z}):send()
+    if VIP_USER and self.Menu.Misc.UsePacket then
+      Packet("S_CAST", {spellId = _Q, toX = self.QPos.x, toY = self.QPos.z, fromX = self.QPos.x, fromY = self.QPos.z}):send()
     else
-      CastSpell(_Q, QPos.x, QPos.z)
+      CastSpell(_Q, self.QPos.x, self.QPos.z)
     end
     
   end
@@ -1542,17 +1825,17 @@ end
 
 ---------------------------------------------------------------------------------
 
-function CastW(unit, mode)
+function HTTF_Orianna:CastW(unit, mode)
 
-  if unit.dead or Ball == nil then
+  if unit.dead or self.Ball == nil then
     return
   end
   
-  WPos, WHitChance = HPred:GetPredict("W", unit, Ball)
+  self.WPos, self.WHitChance = self.HPred:GetPredict("W", unit, self.Ball)
   
-  if mode == "Combo" and WHitChance >= Menu.HitChance.Combo.W or mode == "Harass" and WHitChance >= Menu.HitChance.Harass.W or mode == nil and WHitChance >= 3 then
+  if mode == "Combo" and self.WHitChance >= self.Menu.HitChance.Combo.W or mode == "Harass" and self.WHitChance >= self.Menu.HitChance.Harass.W or mode == nil and self.WHitChance >= 3 then
   
-    if VIP_USER and Menu.Misc.UsePacket then
+    if VIP_USER and self.Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _W}):send()
     else
       CastSpell(_W)
@@ -1564,17 +1847,17 @@ end
 
 ---------------------------------------------------------------------------------
 
-function CastE(unit)
+function HTTF_Orianna:CastE(unit)
 
-  if unit.dead or Ball == nil or Ball == myHero then
+  if unit.dead or self.Ball == nil or self.Ball == myHero then
     return
   end
   
-  EHit = HPred:SpellCollision("E", unit, Ball, myHero)
+  self.EHit = self.HPred:SpellCollision("E", unit, self.Ball, myHero)
   
-  if EHit then
+  if self.EHit then
   
-    if VIP_USER and Menu.Misc.UsePacket then
+    if VIP_USER and self.Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _E, targetNetworkId = myHero.networkID}):send()
     else
       CastSpell(_E, myHero)
@@ -1586,9 +1869,13 @@ end
 
 ---------------------------------------------------------------------------------
 
-function CastEMe()
+function HTTF_Orianna:CastEMe()
 
-  if VIP_USER and Menu.Misc.UsePacket then
+  if self.Ball == nil or self.Ball == myHero then
+    return
+  end
+  
+  if VIP_USER and self.Menu.Misc.UsePacket then
     Packet("S_CAST", {spellId = _E, targetNetworkId = myHero.networkID}):send()
   else
     CastSpell(_E, myHero)
@@ -1598,17 +1885,49 @@ end
 
 ---------------------------------------------------------------------------------
 
-function CastR(unit, mode)
+function HTTF_Orianna:GiveE(unit)
 
-  if unit.dead or Ball == nil then
+  if unit.dead or self.Ball == nil or self.Ball == unit then
     return
   end
   
-  RPos, RHitChance, RNoH = HPred:GetPredict("R", unit, Ball, true)
+  if VIP_USER and self.Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = _E, targetNetworkId = unit.networkID}):send()
+  else
+    CastSpell(_E, unit)
+  end
   
-  if mode == "ComboS" and RHitChance >= Menu.HitChance.Combo.R or mode == "ComboM" and RNoH >= Menu.Combo.R4 or mode == nil and RHitChance >= 3 then
+end
+
+---------------------------------------------------------------------------------
+
+function HTTF_Orianna:ProtectE(unit)
+
+  if self.Ball == nil then
+    return
+  end
   
-    if VIP_USER and Menu.Misc.UsePacket then
+  if VIP_USER and self.Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = _E, targetNetworkId = unit.networkID}):send()
+  else
+    CastSpell(_E, unit)
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function HTTF_Orianna:CastR(unit, mode)
+
+  if unit.dead or self.Ball == nil then
+    return
+  end
+  
+  self.RPos, self.RHitChance, self.RNoH = self.HPred:GetPredict("R", unit, self.Ball, true)
+  
+  if mode == "ComboS" and self.RHitChance >= self.Menu.HitChance.Combo.R or mode == "ComboM" and self.RNoH >= self.Menu.Combo.R4 or mode == nil and self.RHitChance >= 3 then
+  
+    if VIP_USER and self.Menu.Misc.UsePacket then
       Packet("S_CAST", {spellId = _R}):send()
     else
       CastSpell(_R)
@@ -1620,48 +1939,48 @@ end
 
 ---------------------------------------------------------------------------------
 
-function CastI(enemy)
+function HTTF_Orianna:CastI(enemy)
 
-  if VIP_USER and Menu.Misc.UsePacket then
-    Packet("S_CAST", {spellId = Ignite, targetNetworkId = enemy.networkID}):send()
+  if VIP_USER and self.Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = self.Ignite, targetNetworkId = enemy.networkID}):send()
   else
-    CastSpell(Ignite, enemy)
+    CastSpell(self.Ignite, enemy)
   end
   
 end
 
 ---------------------------------------------------------------------------------
 
-function CastS(enemy)
+function HTTF_Orianna:CastS(enemy)
 
-  if VIP_USER and Menu.Misc.UsePacket then
-    Packet("S_CAST", {spellId = Smite, targetNetworkId = enemy.networkID}):send()
+  if VIP_USER and self.Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = self.Smite, targetNetworkId = enemy.networkID}):send()
   else
-    CastSpell(Smite, enemy)
+    CastSpell(self.Smite, enemy)
   end
   
 end
 
 ---------------------------------------------------------------------------------
 
-function CastBC(enemy)
+function HTTF_Orianna:CastBC(enemy)
 
-  if VIP_USER and Menu.Misc.UsePacket then
-    Packet("S_CAST", {spellId = Items["BC"].slot, targetNetworkId = enemy.networkID}):send()
+  if VIP_USER and self.Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = self.Items["BC"].slot, targetNetworkId = enemy.networkID}):send()
   else
-    CastSpell(Items["BC"].slot, enemy)
+    CastSpell(self.Items["BC"].slot, enemy)
   end
   
 end
 
 ---------------------------------------------------------------------------------
 
-function CastBRK(enemy)
+function HTTF_Orianna:CastBRK(enemy)
 
-  if VIP_USER and Menu.Misc.UsePacket then
-    Packet("S_CAST", {spellId = Items["BRK"].slot, targetNetworkId = enemy.networkID}):send()
+  if VIP_USER and self.Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = self.Items["BRK"].slot, targetNetworkId = enemy.networkID}):send()
   else
-    CastSpell(Items["BRK"].slot, enemy)
+    CastSpell(self.Items["BRK"].slot, enemy)
   end
   
 end
@@ -1669,169 +1988,169 @@ end
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function MoveToMouse()
+function HTTF_Orianna:MoveToMouse()
 
   if mousePos and GetDistance(mousePos) <= 100 then
-    MousePos = myHero+(Vector(mousePos)-myHero):normalized()*300
+    self.MousePos = myHero+(Vector(mousePos)-myHero):normalized()*300
   else
-    MousePos = mousePos
+    self.MousePos = mousePos
   end
   
-  myHero:MoveTo(MousePos.x, MousePos.z)
+  myHero:MoveTo(self.MousePos.x, self.MousePos.z)
 end
 
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function OnDraw()
+function HTTF_Orianna:Draw()
 
-  if not Menu.Draw.On or myHero.dead then
+  if not self.Menu.Draw.On or myHero.dead then
     return
   end
   
-  if Menu.Draw.Target.Q and QTarget ~= nil then
-    DrawCircle(QTarget.x, QTarget.y, QTarget.z, Q.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+  if self.Menu.Draw.Target.Q and self.QTarget ~= nil then
+    DrawCircle(self.QTarget.x, self.QTarget.y, self.QTarget.z, self.Q.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
-  if Menu.Draw.Target.E and ETarget ~= nil then
-    DrawCircle(ETarget.x, ETarget.y, ETarget.z, E.width/2, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+  if self.Menu.Draw.Target.E and self.ETarget ~= nil then
+    DrawCircle(self.ETarget.x, self.ETarget.y, self.ETarget.z, self.E.width/2, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
-  if QHitChance ~= nil then
+  if self.QHitChance ~= nil then
   
-    if QHitChance == 0 then
-      Qcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
-    elseif QHitChance == 3 then
-      Qcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
-    elseif QHitChance >= 2 then
-      Qcolor = ARGB(0xFF, 0x1D, 0xDB, 0x16)
-    elseif QHitChance >= 1 then
-      Qcolor = ARGB(0xFF, 0xFF, 0xE4, 0x00)
+    if self.QHitChance == 0 then
+      self.Qcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
+    elseif self.QHitChance == 3 then
+      self.Qcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
+    elseif self.QHitChance >= 2 then
+      self.Qcolor = ARGB(0xFF, 0x1D, 0xDB, 0x16)
+    elseif self.QHitChance >= 1 then
+      self.Qcolor = ARGB(0xFF, 0xFF, 0xE4, 0x00)
     end
   
   end
   
-  if WHitChance ~= nil then
+  if self.WHitChance ~= nil then
   
-    if WHitChance == 0 then
-      Wcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
-    elseif WHitChance == 3 then
-      Wcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
-    elseif WHitChance >= 2 then
-      Wcolor = ARGB(0xFF, 0x1D, 0xDB, 0x16)
-    elseif WHitChance >= 1 then
-      Wcolor = ARGB(0xFF, 0xFF, 0xE4, 0x00)
+    if self.WHitChance == 0 then
+      self.Wcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
+    elseif self.WHitChance == 3 then
+      self.Wcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
+    elseif self.WHitChance >= 2 then
+      self.Wcolor = ARGB(0xFF, 0x1D, 0xDB, 0x16)
+    elseif self.WHitChance >= 1 then
+      self.Wcolor = ARGB(0xFF, 0xFF, 0xE4, 0x00)
     end
   
   end
   
-  if EHit ~= nil then
+  if self.EHit ~= nil then
   
-    if EHit then
-      Ecolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
+    if self.EHit then
+      self.Ecolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
     else
-      Ecolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
+      self.Ecolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
     end
     
   end
   
-  if RHitChance ~= nil then
+  if self.RHitChance ~= nil then
   
-    if RHitChance == 0 then
-      Rcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
-    elseif RHitChance == 3 then
-      Rcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
-    elseif RHitChance >= 2 then
-      Rcolor = ARGB(0xFF, 0x1D, 0xDB, 0x16)
-    elseif RHitChance >= 1 then
-      Rcolor = ARGB(0xFF, 0xFF, 0xE4, 0x00)
+    if self.RHitChance == 0 then
+      self.Rcolor = ARGB(0xFF, 0xFF, 0x00, 0x00)
+    elseif self.RHitChance == 3 then
+      self.Rcolor = ARGB(0xFF, 0x00, 0x54, 0xFF)
+    elseif self.RHitChance >= 2 then
+      self.Rcolor = ARGB(0xFF, 0x1D, 0xDB, 0x16)
+    elseif self.RHitChance >= 1 then
+      self.Rcolor = ARGB(0xFF, 0xFF, 0xE4, 0x00)
     end
     
   end
   
-  if Ball ~= nil then
+  if self.Ball ~= nil then
   
-    if Menu.Draw.PP.Q and QPos ~= nil then
+    if self.Menu.Draw.PP.Q and self.QPos ~= nil then
     
-      DrawCircle(QPos.x, QPos.y, QPos.z, Q.radius, Qcolor)
+      DrawCircle(self.QPos.x, self.QPos.y, self.QPos.z, self.Q.radius, self.Qcolor)
       
-      if Menu.Draw.PP.Line then
-        DrawLine3D(Ball.x, Ball.y, Ball.z, QPos.x, QPos.y, QPos.z, 2, Qcolor)
+      if self.Menu.Draw.PP.Line then
+        DrawLine3D(self.Ball.x, self.Ball.y, self.Ball.z, self.QPos.x, self.QPos.y, self.QPos.z, 2, self.Qcolor)
       end
       
-      QPos = nil
+      self.QPos = nil
     end
     
-    if Menu.Draw.PP.E and EHit ~= nil then
-      DrawLine3D(Ball.x, Ball.y, Ball.z, myHero.x, myHero.y, myHero.z, 2, Ecolor)
+    if self.Menu.Draw.PP.E and self.EHit ~= nil then
+      DrawLine3D(self.Ball.x, self.Ball.y, self.Ball.z, myHero.x, myHero.y, myHero.z, 2, self.Ecolor)
     end
     
   end
   
-  if Menu.Draw.Hitchance then
+  if self.Menu.Draw.Hitchance then
   
-    if QHitChance ~= nil then
-      DrawText("Q HitChance: "..QHitChance, 20, 1250, 550, Qcolor)
-      QHitChance = nil
+    if self.QHitChance ~= nil then
+      DrawText("Q HitChance: "..self.QHitChance, 20, 1250, 550, self.Qcolor)
+      self.QHitChance = nil
     end
   
-    if WHitChance ~= nil then
-      DrawText("W HitChance: "..WHitChance, 20, 1250, 600, Wcolor)
-      WHitChance = nil
+    if self.WHitChance ~= nil then
+      DrawText("W HitChance: "..self.WHitChance, 20, 1250, 600, self.Wcolor)
+      self.WHitChance = nil
     end
   
-    if EHit ~= nil then
-      DrawText("E Hit: "..tostring(EHit), 20, 1250, 650, Ecolor)
+    if self.EHit ~= nil then
+      DrawText("E Hit: "..tostring(self.EHit), 20, 1250, 650, self.Ecolor)
     end
     
-    if RHitChance ~= nil then
-      DrawText("R HitChance: "..RHitChance, 20, 1250, 700, Rcolor)
-      RHitChance = nil
+    if self.RHitChance ~= nil then
+      DrawText("R HitChance: "..self.RHitChance, 20, 1250, 700, self.Rcolor)
+      self.RHitChance = nil
       
-      if RNoH ~= nil then
-        DrawText("R NoH: "..RNoH, 20, 1050, 550, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
-        RNoH = nil
+      if self.RNoH ~= nil then
+        DrawText("R NoH: "..self.RNoH, 20, 1050, 550, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+        self.RNoH = nil
       end
       
     end
     
   end
   
-  EHit = nil
+  self.EHit = nil
   
-  if Menu.Draw.AA then
-    DrawCircle(myHero.x, myHero.y, myHero.z, TrueRange, ARGB(0xFF, 0, 0xFF, 0))
+  if self.Menu.Draw.AA then
+    DrawCircle(myHero.x, myHero.y, myHero.z, self.TrueRange, ARGB(0xFF, 0, 0xFF, 0))
   end
   
-  if Menu.Draw.Q then
-    DrawCircle(myHero.x, myHero.y, myHero.z, Q.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+  if self.Menu.Draw.Q then
+    DrawCircle(myHero.x, myHero.y, myHero.z, self.Q.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
-  if Menu.Draw.W and W.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, W.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+  if self.Menu.Draw.W and self.W.ready then
+    DrawCircle(myHero.x, myHero.y, myHero.z, self.W.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
-  if Menu.Draw.E and E.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, E.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+  if self.Menu.Draw.E and self.E.ready then
+    DrawCircle(myHero.x, myHero.y, myHero.z, self.E.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
-  if Menu.Draw.R and R.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, R.range, ARGB(0xFF, 0x00, 0x00, 0xFF))
+  if self.Menu.Draw.R and self.R.ready then
+    DrawCircle(myHero.x, myHero.y, myHero.z, self.R.range, ARGB(0xFF, 0x00, 0x00, 0xFF))
   end
   
-  if Menu.Draw.I and I.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, I.range, ARGB(0xFF, 0xFF, 0x24, 0x24))
+  if self.Menu.Draw.I and self.I.ready then
+    DrawCircle(myHero.x, myHero.y, myHero.z, self.I.range, ARGB(0xFF, 0xFF, 0x24, 0x24))
   end
   
-  if Menu.Draw.S and S.ready and (Menu.JSteal.On or Menu.JSteal.On2) and Menu.JSteal.S then
-    DrawCircle(myHero.x, myHero.y, myHero.z, S.range, ARGB(0xFF, 0xFF, 0x14, 0x93))
+  if self.Menu.Draw.S and self.S.ready and (self.Menu.JSteal.On or self.Menu.JSteal.On2) and self.Menu.JSteal.S then
+    DrawCircle(myHero.x, myHero.y, myHero.z, self.S.range, ARGB(0xFF, 0xFF, 0x14, 0x93))
   end
   
-  if Menu.Draw.Ball and Ball ~= nil then
-    DrawCircle(Ball.x, Ball.y, Ball.z, Q.radius, ARGB(0xFF, 0xFF, 0x5E, 0x00))
+  if self.Menu.Draw.Ball and self.Ball ~= nil then
+    DrawCircle(self.Ball.x, self.Ball.y, self.Ball.z, self.Q.radius, ARGB(0xFF, 0xFF, 0x5E, 0x00))
   end
   
-  if Menu.Draw.Path then
+  if self.Menu.Draw.Path then
   
     if myHero.hasMovePath and myHero.pathCount >= 2 then
     
@@ -1851,7 +2170,7 @@ function OnDraw()
       
     end
     
-    for i, enemy in ipairs(EnemyHeroes) do
+    for i, enemy in ipairs(self.GetEnemyHeroes) do
     
       if enemy == nil then
         return
@@ -1884,47 +2203,46 @@ end
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 
-function OnAnimation(unit, animation)
+function HTTF_Orianna:Animation(unit, animation)
 
   if not unit.isMe then
     return
   end
   
   if animation == "Prop" then
-    Ball = unit
+    self.Ball = unit
   end
   
 end
 
 ---------------------------------------------------------------------------------
 
-function OnCreateObj(object)
+function HTTF_Orianna:CreateObj(object)
 
   if object.team ~= myHero.team then
     return
   end
   
   if object.name == "TheDoomBall" then
-    Ball = object
+    self.Ball = object
   end
   
 end
 
 ---------------------------------------------------------------------------------
 
-function OnProcessSpell(unit, spell)
+function HTTF_Orianna:ProcessSpell(unit, spell)
 
   if not unit.isMe then
     return
   end
   
   if spell.name == "OrianaIzunaCommand" then
-    Ball = nil
+    self.Ball = nil
   end
   
   if spell.name == "OrianaRedactCommand" then
-    Ball = spell.target
+    self.Ball = spell.target
   end
   
 end
---Extra line for easy copy
