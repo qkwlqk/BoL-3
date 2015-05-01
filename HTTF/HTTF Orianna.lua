@@ -1,4 +1,4 @@
-local Version = "1.23"
+local Version = "1.231"
 
 if myHero.charName ~= "Orianna" then
   return
@@ -1492,68 +1492,30 @@ function HTTF_Orianna:KillSteal()
 end
 
 ---------------------------------------------------------------------------------
---[[function HTTF_Orianna:Auto()
+function HTTF_Orianna:Auto()
+
+  if self.Ball == nil then
+    return
+  end
   
   local AutoW = self.Menu.Auto.W
   local AutoW2 = self.Menu.Auto.W2
   local AutoW3 = self.Menu.Auto.W3
-  local AutoWR = self.Menu.Combo.R
-  local AutoW2 = self.Menu.Combo.R2
-  local AutoWR3 = self.Menu.Combo.R3
-
-  if self.QTarget ~= nil then
+  local AutoR = self.Menu.Auto.R
+  local AutoR2 = self.Menu.Auto.R2
+  local AutoR3 = self.Menu.Auto.R3
   
-    local ComboQ = self.Menu.Combo.Q
-    local ComboQ2 = self.Menu.Combo.Q2
-    
-    if self.Q.ready and ComboQ and ComboQ2 <= self:ManaPercent() then
-    
-      if ValidTarget(self.QTarget, self.Q.range+self.Q.radius) then
-        self:CastQ(self.QTarget, "Combo")
-      end
-      
-      for i, enemy in ipairs(self.GetEnemyHeroes) do
-      
-        if ValidTarget(enemy, self.Q.range+self.Q.radius) then
-          self:CastQ(enemy, "Combo")
-        end
-        
-      end
-      
-    end
-    
-    if self.Ball ~= nil and self.Q.ready and self.E.ready and ComboQ and ComboE and ComboQ2+ComboE2 <= self:ManaPercent() and .95*GetDistance(self.QTarget, self.Ball)/1200 > GetDistance(myHero, self.Ball)/1800+GetDistance(self.QTarget, myHero)/1200 then
-      self:CastEMe()
-    end
-    
-  end
-  
-  if self.W.ready and ComboW and ComboW2 <= self:ManaPercent() then
+  if self.W.ready and AutoW and AutoW2 <= self:ManaPercent() then
   
     for i, enemy in ipairs(self.GetEnemyHeroes) do
     
       if ValidTarget(enemy, self.W.range+self.W.radius) then
-        self:CastW(enemy, "Combo")
-      end
       
-    end
-    
-  end
-  
-  if self.ETarget ~= nil then
-  
-    local ComboE3 = self.Menu.Combo.E3
-    
-    if self.E.ready and ComboE and ComboE2 <= self:ManaPercent() and (not ComboE3 or ComboE3 and self.EnemyHeroesCount(600) ~= 0) then
-    
-      if ValidTarget(self.ETarget, self.E.range) then
-        self:CastE(self.ETarget)
-      end
-      
-      for i, enemy in ipairs(self.GetEnemyHeroes) do
-      
-        if ValidTarget(enemy, self.E.range) then
-          self:CastE(enemy)
+        local WPos, WHitChance, WNoH = self.HPred:GetPredict("W", enemy, self.Ball, true)
+        
+        if WNoH >= AutoW3 then
+          self:CastW_Stat()
+          break
         end
         
       end
@@ -1562,70 +1524,17 @@ end
     
   end
   
-  if self.E.ready and self.R.ready and ComboE and ComboE2+ComboR3 <= self:ManaPercent() then
-  
-    local breakfor = false
-    
-    for i, ally in ipairs(self.GetAllyHeroes) do
-    
-      for j, enemy in ipairs(self.GetEnemyHeroes) do
-      
-        if ValidTarget(enemy, self.R.range+self.R.radius) then
-        
-          local RPos, RHitChance, RNoH = self.HPred:GetPredict("R", enemy, ally, true)
-          
-          if ComboR then
-          
-            local QenemyDmg = self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)
-            local WenemyDmg = self.W.ready and self:GetDmg("W", enemy) or 0
-            local RenemyDmg = self:GetDmg("R", enemy)
-            
-            if QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and RHitChance >= self.Menu.HitChance.Combo.R then
-              self:GiveE(ally)
-              breakfor = true
-              break
-            end
-            
-          end
-          
-          if ComboR2 and RNoH >= self.Menu.Combo.R4 then
-            breakfor = true
-            self:GiveE(ally)
-             break
-          end
-          
-        end
-        
-      end
-      
-      if breakfor then
-        break
-      end
-      
-    end
-    
-  end
-  
-  if self.R.ready and ComboR3 <= self:ManaPercent() then
+  if self.R.ready and AutoR and AutoR2 <= self:ManaPercent() then
   
     for i, enemy in ipairs(self.GetEnemyHeroes) do
     
       if ValidTarget(enemy, self.R.range+self.R.radius) then
       
-        if ComboR then
+        local RPos, RHitChance, RNoH = self.HPred:GetPredict("R", enemy, self.Ball, true)
         
-          local QenemyDmg = self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)
-          local WenemyDmg = self.W.ready and self:GetDmg("W", enemy) or 0
-          local RenemyDmg = self:GetDmg("R", enemy)
-          
-          if QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
-            self:CastR(enemy, "ComboS")
-          end
-          
-        end
-        
-        if ComboR2 then
-          self:CastR(enemy, "ComboM")
+        if RNoH >= AutoR3 then
+          self:CastR_Stat()
+          break
         end
         
       end
@@ -1634,53 +1543,7 @@ end
     
   end
   
-  if STarget ~= nil then
-  
-    local ComboItem = self.Menu.Combo.Item
-    
-    if ComboItem then
-    
-      local ComboBRK = self.Menu.Combo.BRK
-      local BCSTargetDmg = self:GetDmg("BC", STarget)
-      local BRKSTargetDmg = self:GetDmg("BRK", STarget)
-      
-      if self.Items["Stalker"].ready and ValidTarget(STarget, self.S.range) then
-        self:CastS(STarget)
-      end
-      
-      if ComboBRK >= self:HealthPercent(myHero) then
-      
-        if self.Items["BC"].ready and ValidTarget(STarget, self.Items["BC"].range) then
-          self:CastBC(STarget)
-        elseif self.Items["BRK"].ready and ValidTarget(STarget, self.Items["BRK"].range) then
-          self:CastBRK(STarget)
-        end
-        
-      end
-      
-    end
-    
-  end
-  
-  self.Menu:addSubMenu("Auto Settings", "Auto")
-    self.Menu.Auto:addParam("On", "Auto", SCRIPT_PARAM_ONOFF, true)
-      self.Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    self.Menu.Auto:addParam("W", "Use W (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
-    self.Menu.Auto:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-    self.Menu.Auto:addParam("W3", "and Use W Min Count (2)", SCRIPT_PARAM_SLICE, 2, 2, 5, 0)
-      self.Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    --self.Menu.Auto:addParam("E", "Use E to defend from targeted spells", SCRIPT_PARAM_ONOFF, true)
-    --self.Menu.Auto:addParam("E2", "Use E if Mana Percent > x% (80)", SCRIPT_PARAM_SLICE, 80, 0, 100, 0)
-    --self.Menu.Auto:addParam("E3", "or Use E if Health Percent < x% (40)", SCRIPT_PARAM_SLICE, 40, 0, 100, 0)
-      --self.Menu.Auto:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    self.Menu.Auto:addParam("R", "Use R (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
-    self.Menu.Auto:addParam("R2", "and Use R if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
-    self.Menu.Auto:addParam("R3", "and Use R Min Count (4)", SCRIPT_PARAM_SLICE, 4, 2, 5, 0)
-    
-  self.Menu:addSubMenu("Flee Settings", "Flee")
-    self.Menu.Flee:addParam("On", "Flee", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('G'))
-    
-end]]
+end
 ---------------------------------------------------------------------------------
 
 function HTTF_Orianna:Flee()
@@ -1847,6 +1710,18 @@ end
 
 ---------------------------------------------------------------------------------
 
+function HTTF_Orianna:CastW_Stat()
+
+  if VIP_USER and self.Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = _W}):send()
+  else
+    CastSpell(_W)
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
 function HTTF_Orianna:CastE(unit)
 
   if unit.dead or self.Ball == nil or self.Ball == myHero then
@@ -1933,6 +1808,18 @@ function HTTF_Orianna:CastR(unit, mode)
       CastSpell(_R)
     end
     
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function HTTF_Orianna:CastR_Stat()
+
+  if VIP_USER and self.Menu.Misc.UsePacket then
+    Packet("S_CAST", {spellId = _R}):send()
+  else
+    CastSpell(_R)
   end
   
 end
