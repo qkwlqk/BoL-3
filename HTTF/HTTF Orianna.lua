@@ -1,4 +1,4 @@
-local Version = "1.24"
+local Version = "1.241"
 
 if myHero.charName ~= "Orianna" then
   return
@@ -80,6 +80,7 @@ function HTTF_Orianna:Variables()
   self.HPred = HPrediction()
   
   self.Ball = myHero
+  self.IsRecall = false
   self.RebornLoaded, self.RevampedLoaded, self.MMALoaded, self.SxOrbLoaded, self.SOWLoaded = false, false, false, false, false
   
   if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
@@ -310,13 +311,14 @@ function HTTF_Orianna:OriannaMenu()
       self.Menu.Clear.JFarm:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
         self.Menu.Clear.JFarm:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
       self.Menu.Clear.JFarm:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
-      self.Menu.Clear.JFarm:addParam("E2", "Use E if Mana Percent > x% (30)", SCRIPT_PARAM_SLICE, 30, 0, 100, 0)
+      self.Menu.Clear.JFarm:addParam("E2", "Use E if Mana Percent > x% (10)", SCRIPT_PARAM_SLICE, 10, 0, 100, 0)
       
     self.Menu.Clear:addSubMenu("All Clear Settings", "All")
       self.Menu.Clear.All:addParam("On", "All Claer", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('T'))
       
   self.Menu:addSubMenu("Harass Settings", "Harass")
     self.Menu.Harass:addParam("On", "Harass", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('C'))
+    self.Menu.Harass:addParam("On2", "Harass Toggle", SCRIPT_PARAM_ONKEYTOGGLE, false, GetKey('H'))
       self.Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     self.Menu.Harass:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
     self.Menu.Harass:addParam("Q2", "Use Q if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
@@ -361,7 +363,7 @@ function HTTF_Orianna:OriannaMenu()
       self.Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     self.Menu.KillSteal:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
       self.Menu.KillSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
-    self.Menu.KillSteal:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, false)
+    self.Menu.KillSteal:addParam("R", "Use R", SCRIPT_PARAM_ONOFF, true)
     if self.Ignite ~= nil then
       self.Menu.KillSteal:addParam("Blank3", "", SCRIPT_PARAM_INFO, "")
     self.Menu.KillSteal:addParam("I", "Use Ignite", SCRIPT_PARAM_ONOFF, true)
@@ -519,7 +521,7 @@ function HTTF_Orianna:Tick()
     self:All()
   end
   
-  if self.Menu.Harass.On then
+  if self.Menu.Harass.On or (self.Menu.Harass.On2 and not self.IsRecall) then
     self:Harass()
   end
   
@@ -631,7 +633,7 @@ function HTTF_Orianna:Combo()
         
       end
       
-    elseif QHitChance >= self.Menu.HitChance.Combo.Q and self.E.ready and ComboE and ComboQ2+ComboE2 <= self:ManaPercent() then
+    elseif self.Ball ~= myHero and QHitChance >= self.Menu.HitChance.Combo.Q and self.E.ready and ComboE and ComboQ2+ComboE2 <= self:ManaPercent() then
     
       local QPos, QHitChance = self.HPred:GetPredict("Q", self.QTarget, self.Ball)
       
@@ -709,8 +711,8 @@ function HTTF_Orianna:Combo()
           
           if ComboR then
           
-            local QenemyDmg = self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)
-            local WenemyDmg = self.W.ready and self:GetDmg("W", enemy) or 0
+            local QenemyDmg = ComboQ and (self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)) or 0
+            local WenemyDmg = ComboW and self.W.ready and self:GetDmg("W", enemy) or 0
             local RenemyDmg = self:GetDmg("R", enemy)
             
             if RHitChance >= self.Menu.HitChance.Combo.R and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
@@ -747,8 +749,8 @@ function HTTF_Orianna:Combo()
       
         if ComboR then
         
-          local QenemyDmg = self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)
-          local WenemyDmg = self.W.ready and self:GetDmg("W", enemy) or 0
+          local QenemyDmg = ComboQ and (self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)) or 0
+          local WenemyDmg = ComboW and self.W.ready and self:GetDmg("W", enemy) or 0
           local RenemyDmg = self:GetDmg("R", enemy)
           
           if QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
@@ -906,7 +908,7 @@ function HTTF_Orianna:JFarm()
         
       end
       
-      if LargeJunglemob ~= nil and self.Ball ~= nil and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() then
+      if LargeJunglemob ~= nil and self.Ball ~= nil and self.Ball ~= myHero and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() then
       
         local Time_QE = math.huge
         local Target_E = nil
@@ -920,7 +922,7 @@ function HTTF_Orianna:JFarm()
           
         end
         
-        if Time_QE and GetDistance(LargeJunglemob, self.Ball)/1200 > .25+Time_QE then
+        if Target_E and GetDistance(LargeJunglemob, self.Ball)/1200 > .25+Time_QE then
           self:GiveE(Target_E)
         end
         
@@ -939,7 +941,7 @@ function HTTF_Orianna:JFarm()
         self:CastQ(junglemob)
       end
       
-      if junglemob ~= nil and self.Ball ~= nil and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() then
+      if junglemob ~= nil and self.Ball ~= nil and self.Ball ~= myHero and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() then
       
         local Time_QE = math.huge
         local Target_E = nil
@@ -953,7 +955,7 @@ function HTTF_Orianna:JFarm()
           
         end
         
-        if Time_QE and GetDistance(junglemob, self.Ball)/1200 > .25+Time_QE then
+        if Target_E and GetDistance(junglemob, self.Ball)/1200 > .25+Time_QE then
           self:GiveE(Target_E)
         end
         
@@ -1229,7 +1231,7 @@ function HTTF_Orianna:Harass()
         
       end
       
-    elseif QHitChance >= self.Menu.HitChance.Harass.Q and self.E.ready and HarassE and HarassQ2+HarassE2 <= self:ManaPercent() then
+    elseif self.Ball ~= myHero and QHitChance >= self.Menu.HitChance.Harass.Q and self.E.ready and HarassE and HarassQ2+HarassE2 <= self:ManaPercent() then
     
       local QPos, QHitChance = self.HPred:GetPredict("Q", self.QTarget, self.Ball)
       
@@ -1526,35 +1528,34 @@ function HTTF_Orianna:KillSteal()
   
   for i, enemy in ipairs(self.EnemyHeroes) do
   
-    local QenemyDmg = self.Q.ready and .7*self:GetDmg("Q", enemy) or 0
-    local WenemyDmg = self.W.ready and self:GetDmg("W", enemy) or 0
-    local EenemyDmg = self.E.ready and self:GetDmg("E", enemy) or 0
-    local RenemyDmg = self.R.ready and self:GetDmg("R", enemy) or 0
-    local IenemyDmg = self:GetDmg("IGNITE", enemy)
-    local SBenemyDmg = self:GetDmg("STALKER", enemy)
+    local QenemyDmg = KillStealQ and self.Q.ready and .7*self:GetDmg("Q", enemy) or 0
+    local WenemyDmg = KillStealW and self.W.ready and self:GetDmg("W", enemy) or 0
+    local EenemyDmg = KillStealE and self.E.ready and self:GetDmg("E", enemy) or 0
+    local RenemyDmg = KillStealR and self.R.ready and self:GetDmg("R", enemy) or 0
+    local IenemyDmg = KillStealI and self.I.ready and self:GetDmg("IGNITE", enemy) or 0
+    local SBenemyDmg = KillStealS and self.Items["Stalker"].ready and self:GetDmg("STALKER", enemy) or 0
     
-    if self.I.ready and KillStealI and IenemyDmg >= enemy.health and ValidTarget(enemy, self.I.range) then
+    if IenemyDmg >= enemy.health and ValidTarget(enemy, self.I.range) then
       self:CastI(enemy)
     end
     
-    if self.Items["Stalker"].ready and KillStealS and SBenemyDmg >= enemy.health and ValidTarget(enemy, self.S.range) then
+    if SBenemyDmg >= enemy.health and ValidTarget(enemy, self.S.range) then
       self:CastS(enemy)
-      return
     end
     
-    if KillStealQ and (KillStealW and KillStealR and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health or KillStealW and QenemyDmg+WenemyDmg >= enemy.health or KillStealR and WenemyDmg+RenemyDmg >= enemy.health or QenemyDmg >= enemy.health) and ValidTarget(enemy, self.Q.range+self.Q.radius) then
+    if KillStealQ and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and ValidTarget(enemy, self.Q.range+self.Q.radius) then
       self:CastQ(enemy)
     end
     
-    if KillStealW and (KillStealR and RenemyDmg >= enemy.health or WenemyDmg >= enemy.health) and ValidTarget(enemy, self.W.range+self.W.radius) then
+    if KillStealW and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and ValidTarget(enemy, self.W.range+self.W.radius) then
       self:CastW(enemy)
     end
     
-    if KillStealE and EenemyDmg >= enemy.health and ValidTarget(enemy, self.E.range) then
+    if EenemyDmg >= enemy.health and ValidTarget(enemy, self.E.range) then
       self:CastE(enemy)
     end
     
-    if KillStealR and (KillStealW and WenemyDmg >= enemy.health or RenemyDmg >= enemy.health) and ValidTarget(enemy, self.R.range+self.R.radius) then
+    if KillStealR and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and ValidTarget(enemy, self.R.range+self.R.radius) then
       self:CastR(enemy)
     end
     
@@ -1623,6 +1624,10 @@ function HTTF_Orianna:Flee()
   
   if self.W.ready and self.Ball == myHero then
     CastSpell(_W)
+  end
+  
+  if self.E.ready and self.Ball ~= nil and self.Ball ~= myHero then
+    self:GiveE(myHero)
   end
   
 end
@@ -1956,6 +1961,12 @@ end
 
 function HTTF_Orianna:Draw()
 
+  if self.Menu.Harass.On or self.Menu.Harass.On2 then
+    DrawText("Harass: On", 20, 1600, 150, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+  else
+    DrawText("Harass: Off", 20, 1600, 150, ARGB(0xFF, 0xFF, 0x80, 0x80))
+  end
+  
   if not self.Menu.Draw.On or myHero.dead then
     return
   end
@@ -2163,6 +2174,12 @@ function HTTF_Orianna:Animation(unit, animation)
   
   if animation == "Prop" then
     self.Ball = unit
+  end
+  
+  if animation == "recall" then
+    self.IsRecall = true
+  elseif animation == "recall_winddown" or animation == "Run" or animation == "Spell1" or animation == "Spell2" or animation == "Spell3" or animation == "Spell4" then
+    self.IsRecall = false
   end
   
 end
