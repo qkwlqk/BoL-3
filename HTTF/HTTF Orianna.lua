@@ -1,4 +1,4 @@
-local Version = "1.246"
+local Version = "1.247"
 
 if myHero.charName ~= "Orianna" then
   return
@@ -436,6 +436,7 @@ function HTTF_Orianna:OriannaMenu()
   self.Menu.Clear.JFarm.On = false
   self.Menu.Clear.All.On = false
   self.Menu.Harass.On = false
+  self.Menu.Harass.On2 = false
   self.Menu.LastHit.On = false
   self.Menu.JSteal.On = false
   self.Menu.Flee.On = false
@@ -703,8 +704,8 @@ function HTTF_Orianna:Combo()
           
           if ComboR then
           
-            local QenemyDmg = ComboQ and self.Q.ready and ValidTarget(enemy, self.Q.range+self.Q.radius) and 2*self:GetDmg("Q", enemy) or 0
-            local WenemyDmg = ComboW and self.W.ready and ValidTarget(enemy, self.W.range+self.W.radius) and self:GetDmg("W", enemy) or 0
+            local QenemyDmg = ComboQ and GetDistance(enemy, myHero) < self.Q.range+self.Q.radius and (self.Q.ready and 2*self:GetDmg("Q", enemy) or not self.Q.ready and self:GetDmg("Q", enemy)) or 0
+            local WenemyDmg = ComboW and self.W.ready and self:GetDmg("W", enemy) or 0
             local RenemyDmg = self:GetDmg("R", enemy)
             
             if RHitChance >= self.Menu.HitChance.Combo.R and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
@@ -741,8 +742,8 @@ function HTTF_Orianna:Combo()
       
         if ComboR then
         
-          local QenemyDmg = ComboQ and self.Q.ready and ValidTarget(enemy, self.Q.range+self.Q.radius) and 2*self:GetDmg("Q", enemy) or 0
-          local WenemyDmg = ComboW and self.W.ready and ValidTarget(enemy, self.W.range+self.W.radius) and self:GetDmg("W", enemy) or 0
+          local QenemyDmg = ComboQ and GetDistance(enemy, myHero) < self.Q.range+self.Q.radius and (self.Q.ready and 2*self:GetDmg("Q", enemy) or not self.Q.ready and 2*self:GetDmg("Q", enemy)) or 0
+          local WenemyDmg = ComboW and self.W.ready and self:GetDmg("W", enemy) or 0
           local RenemyDmg = self:GetDmg("R", enemy)
           
           if QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
@@ -1512,34 +1513,34 @@ function HTTF_Orianna:KillSteal()
   
   for i, enemy in ipairs(self.EnemyHeroes) do
   
-    local QenemyDmg = KillStealQ and self.Q.ready and ValidTarget(enemy, self.Q.range+self.Q.radius) and .8*self:GetDmg("Q", enemy) or 0
-    local WenemyDmg = KillStealW and self.W.ready and ValidTarget(enemy, self.W.range+self.W.radius) and self:GetDmg("W", enemy) or 0
-    local EenemyDmg = KillStealE and self.E.ready and ValidTarget(enemy, self.E.range) and self:GetDmg("E", enemy) or 0
-    local RenemyDmg = KillStealR and self.R.ready and ValidTarget(enemy, self.R.range+self.R.radius) and self:GetDmg("R", enemy) or 0
-    local IenemyDmg = KillStealI and self.I.ready and ValidTarget(enemy, self.I.range) and self:GetDmg("IGNITE", enemy) or 0
-    local SBenemyDmg = KillStealS and self.Items["Stalker"].ready and ValidTarget(enemy, self.S.range) and self:GetDmg("STALKER", enemy) or 0
+    local QenemyDmg = KillStealQ and GetDistance(enemy, myHero) < self.Q.range+self.Q.radius and self.Q.ready and .8*self:GetDmg("Q", enemy) or 0
+    local WenemyDmg = KillStealW and self.W.ready and self:GetDmg("W", enemy) or 0
+    local EenemyDmg = KillStealE and self.E.ready and self:GetDmg("E", enemy) or 0
+    local RenemyDmg = KillStealR and self.R.ready and self:GetDmg("R", enemy) or 0
+    local IenemyDmg = KillStealI and self.I.ready and self:GetDmg("IGNITE", enemy) or 0
+    local SBenemyDmg = KillStealS and self.Items["Stalker"].ready and self:GetDmg("STALKER", enemy) or 0
     
-    if IenemyDmg >= enemy.health then
+    if IenemyDmg >= enemy.health and ValidTarget(enemy, self.I.range) then
       self:CastI(enemy)
     end
     
-    if SBenemyDmg >= enemy.health then
+    if SBenemyDmg >= enemy.health and ValidTarget(enemy, self.S.range) then
       self:CastS(enemy)
     end
     
-    if QenemyDmg ~= 0 and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
+    if KillStealQ and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and ValidTarget(enemy, self.Q.range+self.Q.radius) then
       self:CastQ(enemy)
     end
     
-    if WenemyDmg ~= 0 and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
+    if KillStealW and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and ValidTarget(enemy, self.W.range+self.W.radius) then
       self:CastW(enemy)
     end
     
-    if EenemyDmg >= enemy.health then
+    if EenemyDmg >= enemy.health and ValidTarget(enemy, self.E.range) then
       self:CastE(enemy)
     end
     
-    if RenemyDmg ~= 0 and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
+    if KillStealR and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and ValidTarget(enemy, self.R.range+self.R.radius) then
       self:CastR(enemy)
     end
     
