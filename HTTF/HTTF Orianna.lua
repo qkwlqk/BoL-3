@@ -1,4 +1,4 @@
-local Version = "1.242"
+local Version = "1.243"
 
 if myHero.charName ~= "Orianna" then
   return
@@ -258,12 +258,12 @@ function HTTF_Orianna:OriannaMenu()
   self.Menu:addSubMenu("HitChance Settings", "HitChance")
   
     self.Menu.HitChance:addSubMenu("Combo", "Combo")
-      self.Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 1.6)", SCRIPT_PARAM_SLICE, 1.6, 1, 3, 2)
+      self.Menu.HitChance.Combo:addParam("Q", "Q HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
       self.Menu.HitChance.Combo:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
       self.Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
       
     self.Menu.HitChance:addSubMenu("Harass", "Harass")
-      self.Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2)", SCRIPT_PARAM_SLICE, 2, 1, 3, 2)
+      self.Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2.6)", SCRIPT_PARAM_SLICE, 2.6, 1, 3, 2)
       self.Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
       
   self.Menu:addSubMenu("Combo Settings", "Combo")
@@ -743,8 +743,8 @@ function HTTF_Orianna:Combo()
       
         if ComboR then
         
-          local QenemyDmg = ComboQ and (self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)) or 0
-          local WenemyDmg = ComboW and self.W.ready and self:GetDmg("W", enemy) or 0
+          local QenemyDmg = ComboQ and ValidTarget(enemy, self.Q.range+self.Q.radius) and (self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)) or 0
+          local WenemyDmg = ComboW and ValidTarget(enemy, self.W.range+self.W.radius) and self.W.ready and self:GetDmg("W", enemy) or 0
           local RenemyDmg = self:GetDmg("R", enemy)
           
           if QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
@@ -1516,18 +1516,18 @@ function HTTF_Orianna:KillSteal()
   
   for i, enemy in ipairs(self.EnemyHeroes) do
   
-    local QenemyDmg = KillStealQ and self.Q.ready and .7*self:GetDmg("Q", enemy) or 0
-    local WenemyDmg = KillStealW and self.W.ready and self:GetDmg("W", enemy) or 0
-    local EenemyDmg = KillStealE and self.E.ready and self:GetDmg("E", enemy) or 0
-    local RenemyDmg = KillStealR and self.R.ready and self:GetDmg("R", enemy) or 0
-    local IenemyDmg = KillStealI and self.I.ready and self:GetDmg("IGNITE", enemy) or 0
-    local SBenemyDmg = KillStealS and self.Items["Stalker"].ready and self:GetDmg("STALKER", enemy) or 0
+    local QenemyDmg = KillStealQ and self.Q.ready and ValidTarget(enemy, self.Q.range+self.Q.radius) and .7*self:GetDmg("Q", enemy) or 0
+    local WenemyDmg = KillStealW and self.W.ready and ValidTarget(enemy, self.W.range+self.W.radius) and self:GetDmg("W", enemy) or 0
+    local EenemyDmg = KillStealE and self.E.ready and ValidTarget(enemy, self.E.range) and self:GetDmg("E", enemy) or 0
+    local RenemyDmg = KillStealR and self.R.ready and ValidTarget(enemy, self.R.range+self.R.radius) and self:GetDmg("R", enemy) or 0
+    local IenemyDmg = KillStealI and self.I.ready and ValidTarget(enemy, self.I.range) and self:GetDmg("IGNITE", enemy) or 0
+    local SBenemyDmg = KillStealS and self.Items["Stalker"].ready and ValidTarget(enemy, self.S.range) and self:GetDmg("STALKER", enemy) or 0
     
-    if IenemyDmg >= enemy.health and ValidTarget(enemy, self.I.range) then
+    if IenemyDmg >= enemy.health then
       self:CastI(enemy)
     end
     
-    if SBenemyDmg >= enemy.health and ValidTarget(enemy, self.S.range) then
+    if SBenemyDmg >= enemy.health then
       self:CastS(enemy)
     end
     
@@ -1539,11 +1539,11 @@ function HTTF_Orianna:KillSteal()
       self:CastW(enemy)
     end
     
-    if EenemyDmg >= enemy.health and ValidTarget(enemy, self.E.range) then
+    if EenemyDmg >= enemy.health then
       self:CastE(enemy)
     end
     
-    if KillStealR and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health and ValidTarget(enemy, self.R.range+self.R.radius) then
+    if KillStealR and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
       self:CastR(enemy)
     end
     
