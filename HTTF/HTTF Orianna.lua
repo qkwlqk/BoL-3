@@ -1,4 +1,4 @@
-local Version = "1.245"
+local Version = "1.246"
 
 if myHero.charName ~= "Orianna" then
   return
@@ -703,7 +703,7 @@ function HTTF_Orianna:Combo()
           
           if ComboR then
           
-            local QenemyDmg = ComboQ and self.Q.ready and ValidTarget(enemy, self.Q.range+self.Q.radius) and self:GetDmg("Q", enemy) or 0
+            local QenemyDmg = ComboQ and self.Q.ready and ValidTarget(enemy, self.Q.range+self.Q.radius) and 2*self:GetDmg("Q", enemy) or 0
             local WenemyDmg = ComboW and self.W.ready and ValidTarget(enemy, self.W.range+self.W.radius) and self:GetDmg("W", enemy) or 0
             local RenemyDmg = self:GetDmg("R", enemy)
             
@@ -741,7 +741,7 @@ function HTTF_Orianna:Combo()
       
         if ComboR then
         
-          local QenemyDmg = ComboQ and self.Q.ready and ValidTarget(enemy, self.Q.range+self.Q.radius) and self:GetDmg("Q", enemy) or 0
+          local QenemyDmg = ComboQ and self.Q.ready and ValidTarget(enemy, self.Q.range+self.Q.radius) and 2*self:GetDmg("Q", enemy) or 0
           local WenemyDmg = ComboW and self.W.ready and ValidTarget(enemy, self.W.range+self.W.radius) and self:GetDmg("W", enemy) or 0
           local RenemyDmg = self:GetDmg("R", enemy)
           
@@ -1512,7 +1512,7 @@ function HTTF_Orianna:KillSteal()
   
   for i, enemy in ipairs(self.EnemyHeroes) do
   
-    local QenemyDmg = KillStealQ and self.Q.ready and ValidTarget(enemy, self.Q.range+self.Q.radius) and self:GetDmg("Q", enemy) or 0
+    local QenemyDmg = KillStealQ and self.Q.ready and ValidTarget(enemy, self.Q.range+self.Q.radius) and .8*self:GetDmg("Q", enemy) or 0
     local WenemyDmg = KillStealW and self.W.ready and ValidTarget(enemy, self.W.range+self.W.radius) and self:GetDmg("W", enemy) or 0
     local EenemyDmg = KillStealE and self.E.ready and ValidTarget(enemy, self.E.range) and self:GetDmg("E", enemy) or 0
     local RenemyDmg = KillStealR and self.R.ready and ValidTarget(enemy, self.R.range+self.R.radius) and self:GetDmg("R", enemy) or 0
