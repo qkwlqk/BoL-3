@@ -1,4 +1,4 @@
-local Version = "1.241"
+local Version = "1.242"
 
 if myHero.charName ~= "Orianna" then
   return
@@ -635,26 +635,20 @@ function HTTF_Orianna:Combo()
       
     elseif self.Ball ~= myHero and QHitChance >= self.Menu.HitChance.Combo.Q and self.E.ready and ComboE and ComboQ2+ComboE2 <= self:ManaPercent() then
     
-      local QPos, QHitChance = self.HPred:GetPredict("Q", self.QTarget, self.Ball)
+      local Time_QE = math.huge
+      local Target_E = nil
       
-      if QHitChance == 0 then
+      for i, ally in ipairs(self.AllyHeroes) do
       
-        local Time_QE = math.huge
-        local Target_E = nil
-        
-        for i, ally in ipairs(self.AllyHeroes) do
-        
-          if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200 then
-            Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200
-            Target_E = ally
-          end
-          
+        if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200 then
+          Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200
+          Target_E = ally
         end
         
-        if Target_E and GetDistance(self.QTarget, self.Ball)/1200 > .25+Time_QE then
-          self:GiveE(Target_E)
-        end
-        
+      end
+      
+      if Target_E and GetDistance(self.QTarget, self.Ball)/1200 > .25+Time_QE then
+        self:GiveE(Target_E)
       end
       
     end
@@ -1233,26 +1227,20 @@ function HTTF_Orianna:Harass()
       
     elseif self.Ball ~= myHero and QHitChance >= self.Menu.HitChance.Harass.Q and self.E.ready and HarassE and HarassQ2+HarassE2 <= self:ManaPercent() then
     
-      local QPos, QHitChance = self.HPred:GetPredict("Q", self.QTarget, self.Ball)
+      local Time_QE = math.huge
+      local Target_E = nil
       
-      if QHitChance == 0 then
+      for i, ally in ipairs(self.AllyHeroes) do
       
-        local Time_QE = math.huge
-        local Target_E = nil
-        
-        for i, ally in ipairs(self.AllyHeroes) do
-        
-          if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200 then
-            Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200
-            Target_E = ally
-          end
-          
+        if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200 then
+          Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200
+          Target_E = ally
         end
         
-        if Target_E and GetDistance(self.QTarget, self.Ball)/1200 > .25+Time_QE then
-          self:GiveE(Target_E)
-        end
-        
+      end
+      
+      if Target_E and GetDistance(self.QTarget, self.Ball)/1200 > .25+Time_QE then
+        self:GiveE(Target_E)
       end
       
     end
