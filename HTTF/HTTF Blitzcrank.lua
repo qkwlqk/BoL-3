@@ -1,4 +1,4 @@
-local Version = "1.205"
+local Version = "1.21"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -63,6 +63,16 @@ function Variables()
 
   HPred = HPrediction()
   
+  Spell_R.delay['Blitzcrank'] = 0.25
+  Spell_R.radius['Blitzcrank'] = 600
+  Spell_R.range['Blitzcrank'] = 0
+  Spell_R.type['Blitzcrank'] = "PromptCircle"
+  
+  QTarget = nil
+  ETarget = nil
+  RTarget = nil
+  STarget = nil
+  
   if myHero:GetSpellData(SUMMONER_1).name:find("summonerdot") then
     Ignite = SUMMONER_1
   elseif myHero:GetSpellData(SUMMONER_2).name:find("summonerdot") then
@@ -78,7 +88,7 @@ function Variables()
   Q = {range = 1050, width = 140, ready}
   W = {ready}
   E = {ready}
-  R = {ready}
+  R = {radius = 600, ready}
   I = {range = 600, ready}
   S = {range = 760, ready}
   
@@ -88,6 +98,7 @@ function Variables()
   TrueRange = myHero.range+AddRange
   
   QTargetRange = Q.range+100
+  RTargetRange = R.radius+100
   
   QMinionRange = Q.range+100
   QJunglemobRange = Q.range+100
@@ -190,6 +201,7 @@ function Variables()
   
   QTS = TargetSelector(TARGET_NEAR_MOUSE, QTargetRange, DAMAGE_MAGIC, false)
   ETS = TargetSelector(TARGET_CLOSEST, TrueRange+100, DAMAGE_PHYSICAL, false)
+  RTS = TargetSelector(TARGET_LESS_CAST, RTargetRange, DAMAGE_MAGIC, false)
   STS = TargetSelector(TARGET_LOW_HP, S.range)
   
   EnemyHeroes = GetEnemyHeroes()
@@ -238,6 +250,11 @@ function BlitzcrankMenu()
     Menu.Combo:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     Menu.Combo:addParam("Info", "Use E if Mana Percent > x%", SCRIPT_PARAM_INFO, "")
     Menu.Combo:addParam("E2", "Default value = 25", SCRIPT_PARAM_SLICE, 25, 0, 100, 0)
+      Menu.Combo:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    Menu.Combo:addParam("R", "Use Smart R (Single Target)", SCRIPT_PARAM_ONOFF, true)
+    Menu.Combo:addParam("R2", "Use R (Multiple Target)", SCRIPT_PARAM_ONOFF, true)
+    Menu.Combo:addParam("R3", "and Use R if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    Menu.Combo:addParam("R4", "and Use R Min Count (3)", SCRIPT_PARAM_SLICE, 3, 2, 5, 0)
     
   Menu:addSubMenu("Clear Settings", "Clear")
   
@@ -325,6 +342,7 @@ function BlitzcrankMenu()
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, true)
     Menu.Draw:addParam("Q", "Draw Q range", SCRIPT_PARAM_ONOFF, true)
+    Menu.Draw:addParam("R", "Draw R radius", SCRIPT_PARAM_ONOFF, true)
     if Ignite ~= nil then
       Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.Draw:addParam("I", "Draw Ignite range", SCRIPT_PARAM_ONOFF, false)
@@ -431,10 +449,12 @@ function Targets()
 
   QTS:update()
   ETS:update()
+  RTS:update()
   STS:update()
   
   QTarget = QTS.target
   ETarget = ETS.target
+  RTarget = RTS.target
   STarget = STS.target
   
 end
@@ -443,17 +463,13 @@ end
 
 function Combo()
 
-  if QTarget ~= nil then
+  local ComboQ = Menu.Combo.Q
+  local ComboQ2 = Menu.Combo.Q2
   
-    local ComboQ = Menu.Combo.Q
-    local ComboQ2 = Menu.Combo.Q2
-    
-    if Q.ready and ComboQ and ComboQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+100) then
-      CastQ(QTarget, "Combo")
-    end
-    
+  if QTarget ~= nil and Q.ready and ComboQ and ComboQ2 <= ManaPercent() and ValidTarget(QTarget, Q.range+100) then
+    CastQ(QTarget, "Combo")
   end
-
+  
   if ETarget ~= nil then
   
     local ComboW = Menu.Combo.W
@@ -467,6 +483,38 @@ function Combo()
     
     if E.ready and ComboE and ComboE2 <= ManaPercent() and ValidTarget(ETarget, TrueRange+unitAddRange(ETarget)) then
       CastE()
+    end
+    
+  end
+  
+  if RTarget ~= nil and R.ready then
+  
+    local ComboR = Menu.Combo.R
+    local ComboR2 = Menu.Combo.R2
+    local ComboR3 = Menu.Combo.R3
+    local ComboR4 = Menu.Combo.R4
+    
+    if ComboR3 <= ManaPercent() and ValidTarget(RTarget, R.radius+100) then
+    
+      if ComboR then
+      
+        local QenemyDmg = ComboQ and Q.ready and ComboQ2+ComboR3 <= ManaPercent() and GetDmg("Q", enemy) or 0
+        local RenemyDmg = GetDmg("R", enemy)
+        
+        if  QenemyDmg+RenemyDmg >= enemy.health then
+          CastR(RTarget, "ComboS")
+        end
+        
+      end
+      
+      for i, enemy in ipairs(EnemyHeroes) do
+      
+        if ComboR2 then
+          CastR(enemy, "ComboM")
+        end
+        
+      end
+      
     end
     
   end
@@ -512,10 +560,6 @@ function JFarm()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local LargeJunglemob = nil
       
       for j = 1, #FocusJungleNames do
@@ -535,10 +579,6 @@ function JFarm()
     
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       if ValidTarget(junglemob, Q.range+100) then
         CastQ(junglemob)
       end
@@ -554,10 +594,6 @@ function JFarm()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local LargeJunglemob = nil
       
       for j = 1, #FocusJungleNames do
@@ -577,10 +613,6 @@ function JFarm()
     
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       if ValidTarget(junglemob, TrueRange+unitAddRange(junglemob)) then
         CastW()
       end
@@ -596,10 +628,6 @@ function JFarm()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local LargeJunglemob = nil
       
       for j = 1, #FocusJungleNames do
@@ -619,10 +647,6 @@ function JFarm()
     
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       if ValidTarget(junglemob, TrueRange+unitAddRange(junglemob)) then
         CastE()
       end
@@ -683,10 +707,6 @@ function LastHit()
   
     for i, minion in pairs(EnemyMinions.objects) do
     
-      if minion == nil then
-        return
-      end
-      
       local QMinionDmg = GetDmg("Q", minion)
       
       if QMinionDmg >= minion.health and ValidTarget(minion, Q.range+100) then
@@ -710,10 +730,6 @@ function JSteal()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
@@ -733,10 +749,6 @@ function JSteal()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local QJunglemobDmg = GetDmg("Q", junglemob)
       
       for j = 1, #FocusJungleNames do
@@ -761,10 +773,6 @@ function JstealAlways()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local SJunglemobDmg = GetDmg("SMITE", junglemob)
       
       for j = 1, #FocusJungleNames do
@@ -784,10 +792,6 @@ function JstealAlways()
   
     for i, junglemob in pairs(JungleMobs.objects) do
     
-      if junglemob == nil then
-        return
-      end
-      
       local QJunglemobDmg = GetDmg("Q", junglemob)
       
       for j = 1, #FocusJungleNames do
@@ -814,10 +818,6 @@ function KillSteal()
   
   for i, enemy in ipairs(EnemyHeroes) do
   
-    if enemy == nil then
-       return
-    end
-    
     local QTargetDmg = GetDmg("Q", enemy)
     local ITargetDmg = GetDmg("IGNITE", enemy)
     local SBTargetDmg = GetDmg("STALKER", enemy)
@@ -927,11 +927,9 @@ function GetDmg(spell, enemy)
   elseif spell == "AA" then
     ADDmg = TotalDmg
   elseif spell == "Q" then
-  
-    if Q.ready then
-      APDmg = 55*Q.level+25+AP
-    end
-    
+    APDmg = 55*Q.level+25+AP
+  elseif spell == "R" then
+    APDmg = 125*R.level+125+AP
   end
   
   local TrueDmg = ADDmg*(1-ArmorPercent)+APDmg*(1-MagicArmorPercent)
@@ -944,6 +942,10 @@ end
 
 function CastQ(unit, mode)
 
+  if unit.dead then
+    return
+  end
+  
   for i, enemy in ipairs(EnemyHeroes) do
   
     if unit == enemy and Menu.BlackList[enemy.charName] then
@@ -996,6 +998,28 @@ function CastE()
     Packet("S_CAST", {spellId = _E}):send()
   else
     CastSpell(_E)
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function CastR(unit, mode)
+
+  if unit.dead then
+    return
+  end
+  
+  local RPos, RHitChance, RNoH = HPred:GetPredict("R", unit, myHero, true)
+  
+  if mode == "ComboS" and RHitChance == 3 or mode == "ComboM" and RNoH >= Menu.Combo.R4 or mode == nil and RHitChance == 3 then
+  
+    if VIP_USER and Menu.Misc.UsePacket then
+      Packet("S_CAST", {spellId = _R}):send()
+    else
+      CastSpell(_R)
+    end
+    
   end
   
 end
@@ -1117,6 +1141,10 @@ function OnDraw()
   
   if Menu.Draw.Q then
     DrawCircle(myHero.x, myHero.y, myHero.z, Q.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+  end
+  
+  if Menu.Draw.R then
+    DrawCircle(myHero.x, myHero.y, myHero.z, R.radius, ARGB(0xFF, 0xFF, 0x00, 0x00))
   end
   
   if Menu.Draw.I and I.ready then
