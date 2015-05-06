@@ -1,4 +1,4 @@
-local Version = "1.248"
+local Version = "1.249"
 
 if myHero.charName ~= "Orianna" then
   return
@@ -415,9 +415,8 @@ function HTTF_Orianna:OriannaMenu()
     self.Menu.Draw:addParam("Ball", "Draw Ball", SCRIPT_PARAM_ONOFF, true)
     self.Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, false)
     self.Menu.Draw:addParam("Q", "Draw Q range", SCRIPT_PARAM_ONOFF, true)
-    self.Menu.Draw:addParam("W", "Draw W range", SCRIPT_PARAM_ONOFF, false)
-    self.Menu.Draw:addParam("E", "Draw E range", SCRIPT_PARAM_ONOFF, false)
-    self.Menu.Draw:addParam("R", "Draw R range", SCRIPT_PARAM_ONOFF, false)
+    self.Menu.Draw:addParam("W", "Draw W radius", SCRIPT_PARAM_ONOFF, false)
+    self.Menu.Draw:addParam("R", "Draw R radius", SCRIPT_PARAM_ONOFF, false)
     if self.Ignite ~= nil then
       self.Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     self.Menu.Draw:addParam("I", "Draw Ignite range", SCRIPT_PARAM_ONOFF, false)
@@ -2084,16 +2083,20 @@ function HTTF_Orianna:Draw()
     DrawCircle(myHero.x, myHero.y, myHero.z, self.Q.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
-  if self.Menu.Draw.W and self.W.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, self.W.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
-  end
+  if self.Ball ~= nil then
   
-  if self.Menu.Draw.E and self.E.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, self.E.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
-  end
-  
-  if self.Menu.Draw.R and self.R.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, self.R.range, ARGB(0xFF, 0x00, 0x00, 0xFF))
+    if self.Menu.Draw.Ball then
+      DrawCircle(self.Ball.x, self.Ball.y, self.Ball.z, self.Q.radius, ARGB(0xFF, 0xFF, 0x5E, 0x00))
+    end
+    
+    if self.Menu.Draw.W and self.W.ready then
+      DrawCircle(self.Ball.x, self.Ball.y, self.Ball.z, self.W.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+    end
+    
+    if self.Menu.Draw.R and self.R.ready then
+      DrawCircle(self.Ball.x, self.Ball.y, self.Ball.z, self.R.radius, ARGB(0xFF, 0x00, 0x00, 0xFF))
+    end
+    
   end
   
   if self.Menu.Draw.I and self.I.ready then
@@ -2102,10 +2105,6 @@ function HTTF_Orianna:Draw()
   
   if self.Menu.Draw.S and self.S.ready and (self.Menu.JSteal.On or self.Menu.JSteal.On2) and self.Menu.JSteal.S then
     DrawCircle(myHero.x, myHero.y, myHero.z, self.S.range, ARGB(0xFF, 0xFF, 0x14, 0x93))
-  end
-  
-  if self.Menu.Draw.Ball and self.Ball ~= nil then
-    DrawCircle(self.Ball.x, self.Ball.y, self.Ball.z, self.Q.radius, ARGB(0xFF, 0xFF, 0x5E, 0x00))
   end
   
   if self.Menu.Draw.Path then
