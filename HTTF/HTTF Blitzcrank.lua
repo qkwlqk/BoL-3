@@ -1,4 +1,4 @@
-local Version = "1.21"
+local Version = "1.211"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -63,6 +63,8 @@ function Variables()
 
   HPred = HPrediction()
   
+  Spell_Q.collisionH['Blitzcrank'] = false
+  
   Spell_R.delay['Blitzcrank'] = 0.25
   Spell_R.radius['Blitzcrank'] = 600
   Spell_R.range['Blitzcrank'] = 0
@@ -91,8 +93,6 @@ function Variables()
   R = {radius = 600, ready}
   I = {range = 600, ready}
   S = {range = 760, ready}
-  
-  Spell_Q.collisionH['Blitzcrank'] = false
   
   AddRange = GetDistance(myHero.minBBox)/2
   TrueRange = myHero.range+AddRange
@@ -942,16 +942,10 @@ end
 
 function CastQ(unit, mode)
 
-  if unit.dead then
+  if unit.dead or Menu.BlackList[unit.charName] then
+    QHitChance = -1
+    
     return
-  end
-  
-  for i, enemy in ipairs(EnemyHeroes) do
-  
-    if unit == enemy and Menu.BlackList[enemy.charName] then
-      return
-    end
-      
   end
   
   QPos, QHitChance = HPred:GetPredict("Q", unit, myHero)
@@ -961,7 +955,7 @@ function CastQ(unit, mode)
     if Menu.BlackList[enemy.charName] and HPred:EachCollision("Q", unit, myHero, QPos, enemy) then
       QHitChance = -1
       
-      break
+      return
     end
     
   end
