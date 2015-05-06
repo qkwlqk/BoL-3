@@ -1,4 +1,4 @@
-local Version = "1.247"
+local Version = "1.248"
 
 if myHero.charName ~= "Orianna" then
   return
@@ -263,7 +263,7 @@ function HTTF_Orianna:OriannaMenu()
       self.Menu.HitChance.Combo:addParam("R", "R HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
       
     self.Menu.HitChance:addSubMenu("Harass", "Harass")
-      self.Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2.6)", SCRIPT_PARAM_SLICE, 2.6, 1, 3, 2)
+      self.Menu.HitChance.Harass:addParam("Q", "Q HitChacne (Default value = 2.5)", SCRIPT_PARAM_SLICE, 2.5, 1, 3, 2)
       self.Menu.HitChance.Harass:addParam("W", "W HitChacne (Default value = 3)", SCRIPT_PARAM_SLICE, 3, 2, 3, 2)
       
   self.Menu:addSubMenu("Combo Settings", "Combo")
@@ -324,7 +324,7 @@ function HTTF_Orianna:OriannaMenu()
     self.Menu.Harass:addParam("Q2", "Use Q if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
       self.Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     self.Menu.Harass:addParam("W", "Use W", SCRIPT_PARAM_ONOFF, true)
-    self.Menu.Harass:addParam("W2", "Use W if Mana Percent > x% (0)", SCRIPT_PARAM_SLICE, 0, 0, 100, 0)
+    self.Menu.Harass:addParam("W2", "Use W if Mana Percent > x% (50)", SCRIPT_PARAM_SLICE, 50, 0, 100, 0)
       self.Menu.Harass:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     self.Menu.Harass:addParam("E", "Use E", SCRIPT_PARAM_ONOFF, true)
     self.Menu.Harass:addParam("E2", "Use E if Mana Percent > x% (60)", SCRIPT_PARAM_SLICE, 60, 0, 100, 0)
@@ -704,10 +704,10 @@ function HTTF_Orianna:Combo()
           
           if ComboR then
           
-            local QenemyDmg = ComboQ and GetDistance(enemy, myHero) < self.Q.range+self.Q.radius and (self.Q.ready and 2*self:GetDmg("Q", enemy) or not self.Q.ready and self:GetDmg("Q", enemy)) or 0
+            local QenemyDmg = ComboQ and GetDistance(enemy, myHero) < self.Q.range+self.Q.radius and (self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)) or 0
             local WenemyDmg = ComboW and self.W.ready and self:GetDmg("W", enemy) or 0
             local RenemyDmg = self:GetDmg("R", enemy)
-            
+            --consider mana
             if RHitChance >= self.Menu.HitChance.Combo.R and QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
               self:GiveE(ally)
               breakfor = true
@@ -742,10 +742,10 @@ function HTTF_Orianna:Combo()
       
         if ComboR then
         
-          local QenemyDmg = ComboQ and GetDistance(enemy, myHero) < self.Q.range+self.Q.radius and (self.Q.ready and 2*self:GetDmg("Q", enemy) or not self.Q.ready and 2*self:GetDmg("Q", enemy)) or 0
+          local QenemyDmg = ComboQ and GetDistance(enemy, myHero) < self.Q.range+self.Q.radius and (self.Q.ready and 2*self:GetDmg("Q", enemy) or self:GetDmg("Q", enemy)) or 0
           local WenemyDmg = ComboW and self.W.ready and self:GetDmg("W", enemy) or 0
           local RenemyDmg = self:GetDmg("R", enemy)
-          
+          --consider mana
           if QenemyDmg+WenemyDmg+RenemyDmg >= enemy.health then
             self:CastR(enemy, "ComboS")
           end
@@ -903,20 +903,25 @@ function HTTF_Orianna:JFarm()
       
       if LargeJunglemob ~= nil and self.Ball ~= nil and self.Ball ~= myHero and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() then
       
+        local QPos, QHitChance = self.HPred:GetPredict("Q", LargeJunglemob, self.Ball)
         local Time_QE = math.huge
         local Target_E = nil
         
-        for i, ally in ipairs(self.AllyHeroes) do
+        if QHitChance < 1 then
         
-          if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(LargeJunglemob, ally)/1200 then
-            Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(LargeJunglemob, ally)/1200
-            Target_E = ally
+          for i, ally in ipairs(self.AllyHeroes) do
+          
+            if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(LargeJunglemob, ally)/1200 then
+              Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(LargeJunglemob, ally)/1200
+              Target_E = ally
+            end
+            
           end
           
-        end
-        
-        if Target_E and GetDistance(LargeJunglemob, self.Ball)/1200 > .25+Time_QE then
-          self:GiveE(Target_E)
+          if Target_E then
+            self:GiveE(Target_E)
+          end
+          
         end
         
       end
@@ -936,20 +941,25 @@ function HTTF_Orianna:JFarm()
       
       if junglemob ~= nil and self.Ball ~= nil and self.Ball ~= myHero and self.E.ready and JFarmE and JFarmQ2+JFarmE2 <= self:ManaPercent() then
       
+        local QPos, QHitChance = self.HPred:GetPredict("Q", junglemob, self.Ball)
         local Time_QE = math.huge
         local Target_E = nil
         
-        for i, ally in ipairs(self.AllyHeroes) do
+        if QHitChance < 1 then
         
-          if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(junglemob, ally)/1200 then
-            Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(junglemob, ally)/1200
-            Target_E = ally
+          for i, ally in ipairs(self.AllyHeroes) do
+          
+            if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(LargeJunglemob, ally)/1200 then
+              Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(LargeJunglemob, ally)/1200
+              Target_E = ally
+            end
+            
           end
           
-        end
-        
-        if Target_E and GetDistance(junglemob, self.Ball)/1200 > .25+Time_QE then
-          self:GiveE(Target_E)
+          if Target_E then
+            self:GiveE(Target_E)
+          end
+          
         end
         
       end
@@ -1515,16 +1525,16 @@ function HTTF_Orianna:KillSteal()
   
     local QenemyDmg = KillStealQ and GetDistance(enemy, myHero) < self.Q.range+self.Q.radius and self.Q.ready and .8*self:GetDmg("Q", enemy) or 0
     local WenemyDmg = KillStealW and self.W.ready and self:GetDmg("W", enemy) or 0
-    local EenemyDmg = KillStealE and self.E.ready and self:GetDmg("E", enemy) or 0
+    local EenemyDmg = self.E.ready and self:GetDmg("E", enemy) or 0
     local RenemyDmg = KillStealR and self.R.ready and self:GetDmg("R", enemy) or 0
-    local IenemyDmg = KillStealI and self.I.ready and self:GetDmg("IGNITE", enemy) or 0
-    local SBenemyDmg = KillStealS and self.Items["Stalker"].ready and self:GetDmg("STALKER", enemy) or 0
+    local IenemyDmg = self.I.ready and self:GetDmg("IGNITE", enemy) or 0
+    local SBenemyDmg = self.Items["Stalker"].ready and self:GetDmg("STALKER", enemy) or 0
     
-    if IenemyDmg >= enemy.health and ValidTarget(enemy, self.I.range) then
+    if KillStealI and IenemyDmg >= enemy.health and ValidTarget(enemy, self.I.range) then
       self:CastI(enemy)
     end
     
-    if SBenemyDmg >= enemy.health and ValidTarget(enemy, self.S.range) then
+    if KillStealS and SBenemyDmg >= enemy.health and ValidTarget(enemy, self.S.range) then
       self:CastS(enemy)
     end
     
@@ -1536,7 +1546,7 @@ function HTTF_Orianna:KillSteal()
       self:CastW(enemy)
     end
     
-    if EenemyDmg >= enemy.health and ValidTarget(enemy, self.E.range) then
+    if KillStealE and EenemyDmg >= enemy.health and ValidTarget(enemy, self.E.range) then
       self:CastE(enemy)
     end
     
