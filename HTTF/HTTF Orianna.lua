@@ -1,4 +1,4 @@
-local Version = "1.249"
+local Version = "1.25"
 
 if myHero.charName ~= "Orianna" then
   return
@@ -412,11 +412,13 @@ function HTTF_Orianna:OriannaMenu()
         
     self.Menu.Draw:addParam("On", "Draw", SCRIPT_PARAM_ONOFF, true)
       self.Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
+    self.Menu.Draw:addParam("Lfc", "Draw Lag free circles", SCRIPT_PARAM_ONOFF, false)
+      self.Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     self.Menu.Draw:addParam("Ball", "Draw Ball", SCRIPT_PARAM_ONOFF, true)
     self.Menu.Draw:addParam("AA", "Draw Attack range", SCRIPT_PARAM_ONOFF, false)
     self.Menu.Draw:addParam("Q", "Draw Q range", SCRIPT_PARAM_ONOFF, true)
-    self.Menu.Draw:addParam("W", "Draw W radius", SCRIPT_PARAM_ONOFF, false)
-    self.Menu.Draw:addParam("R", "Draw R radius", SCRIPT_PARAM_ONOFF, false)
+    self.Menu.Draw:addParam("W", "Draw W radius", SCRIPT_PARAM_ONOFF, true)
+    self.Menu.Draw:addParam("R", "Draw R radius", SCRIPT_PARAM_ONOFF, true)
     if self.Ignite ~= nil then
       self.Menu.Draw:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     self.Menu.Draw:addParam("I", "Draw Ignite range", SCRIPT_PARAM_ONOFF, false)
@@ -647,7 +649,7 @@ function HTTF_Orianna:Combo()
         
       end
       
-      if Target_E and GetDistance(self.QTarget, self.Ball)/1200 > .25+Time_QE then
+      if Target_E and GetDistance(self.QTarget, self.Ball)/1200 > .125+Time_QE then
         self:GiveE(Target_E)
       end
       
@@ -1247,7 +1249,7 @@ function HTTF_Orianna:Harass()
         
       end
       
-      if Target_E and GetDistance(self.QTarget, self.Ball)/1200 > .25+Time_QE then
+      if Target_E and GetDistance(self.QTarget, self.Ball)/1200 > .125+Time_QE then
         self:GiveE(Target_E)
       end
       
@@ -1955,22 +1957,22 @@ end
 
 function HTTF_Orianna:Draw()
 
+  if not self.Menu.Draw.On or myHero.dead then
+    return
+  end
+  
   if self.Menu.Harass.On or self.Menu.Harass.On2 then
     DrawText("Harass: On", 20, 1600, 150, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   else
     DrawText("Harass: Off", 20, 1600, 150, ARGB(0xFF, 0xFF, 0x80, 0x80))
   end
   
-  if not self.Menu.Draw.On or myHero.dead then
-    return
-  end
-  
   if self.Menu.Draw.Target.Q and self.QTarget ~= nil then
-    DrawCircle(self.QTarget.x, self.QTarget.y, self.QTarget.z, self.Q.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+    self:DrawCircles(self.QTarget.x, self.QTarget.y, self.QTarget.z, self.Q.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
   if self.Menu.Draw.Target.E and self.ETarget ~= nil then
-    DrawCircle(self.ETarget.x, self.ETarget.y, self.ETarget.z, self.E.width/2, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+    self:DrawCircles(self.ETarget.x, self.ETarget.y, self.ETarget.z, self.E.width/2, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
   if self.QHitChance ~= nil then
@@ -2029,7 +2031,7 @@ function HTTF_Orianna:Draw()
   
     if self.Menu.Draw.PP.Q and self.QPos ~= nil then
     
-      DrawCircle(self.QPos.x, self.QPos.y, self.QPos.z, self.Q.radius, self.Qcolor)
+      self:DrawCircles(self.QPos.x, self.QPos.y, self.QPos.z, self.Q.radius, self.Qcolor)
       
       if self.Menu.Draw.PP.Line then
         DrawLine3D(self.Ball.x, self.Ball.y, self.Ball.z, self.QPos.x, self.QPos.y, self.QPos.z, 2, self.Qcolor)
@@ -2076,35 +2078,35 @@ function HTTF_Orianna:Draw()
   self.EHit = nil
   
   if self.Menu.Draw.AA then
-    DrawCircle(myHero.x, myHero.y, myHero.z, self.TrueRange, ARGB(0xFF, 0, 0xFF, 0))
+    self:DrawCircles(myHero.x, myHero.y, myHero.z, self.TrueRange, ARGB(0xFF, 0, 0xFF, 0))
   end
   
   if self.Menu.Draw.Q then
-    DrawCircle(myHero.x, myHero.y, myHero.z, self.Q.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+    self:DrawCircles(myHero.x, myHero.y, myHero.z, self.Q.range, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
   end
   
   if self.Ball ~= nil then
   
     if self.Menu.Draw.Ball then
-      DrawCircle(self.Ball.x, self.Ball.y, self.Ball.z, self.Q.radius, ARGB(0xFF, 0xFF, 0x5E, 0x00))
+      self:DrawCircles(self.Ball.x, self.Ball.y, self.Ball.z, self.Q.radius, ARGB(0xFF, 0xFF, 0x5E, 0x00))
     end
     
     if self.Menu.Draw.W and self.W.ready then
-      DrawCircle(self.Ball.x, self.Ball.y, self.Ball.z, self.W.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
+      self:DrawCircles(self.Ball.x, self.Ball.y, self.Ball.z, self.W.radius, ARGB(0xFF, 0xFF, 0xFF, 0xFF))
     end
     
     if self.Menu.Draw.R and self.R.ready then
-      DrawCircle(self.Ball.x, self.Ball.y, self.Ball.z, self.R.radius, ARGB(0xFF, 0x00, 0x00, 0xFF))
+      self:DrawCircles(self.Ball.x, self.Ball.y, self.Ball.z, self.R.radius, ARGB(0xFF, 0x00, 0x00, 0xFF))
     end
     
   end
   
   if self.Menu.Draw.I and self.I.ready then
-    DrawCircle(myHero.x, myHero.y, myHero.z, self.I.range, ARGB(0xFF, 0xFF, 0x24, 0x24))
+    self:DrawCircles(myHero.x, myHero.y, myHero.z, self.I.range, ARGB(0xFF, 0xFF, 0x24, 0x24))
   end
   
   if self.Menu.Draw.S and self.S.ready and (self.Menu.JSteal.On or self.Menu.JSteal.On2) and self.Menu.JSteal.S then
-    DrawCircle(myHero.x, myHero.y, myHero.z, self.S.range, ARGB(0xFF, 0xFF, 0x14, 0x93))
+    self:DrawCircles(myHero.x, myHero.y, myHero.z, self.S.range, ARGB(0xFF, 0xFF, 0x14, 0x93))
   end
   
   if self.Menu.Draw.Path then
@@ -2153,6 +2155,54 @@ function HTTF_Orianna:Draw()
       
     end
     
+  end
+  
+end
+
+---------------------------------------------------------------------------------
+
+function HTTF_Orianna:DrawCircles(x, y, z, radius, color)
+
+  if self.Menu.Draw.Lfc then
+  
+    local v1 = Vector(x, y, z)
+    local v2 = Vector(cameraPos.x, cameraPos.y, cameraPos.z)
+    local tPos = v1-(v1-v2):normalized()*radius
+    local sPos = WorldToScreen(D3DXVECTOR3(tPos.x, tPos.y, tPos.z))
+    
+    if OnScreen({x = sPos.x, y = sPos.y}, {x = sPos.x, y = sPos.y}) then
+      self:DrawCircles2(x, y, z, radius, color) 
+    end
+    
+  else
+    DrawCircle(x, y, z, radius, color)
+  end
+  
+end
+
+function HTTF_Orianna:DrawCircles2(x, y, z, radius, color)
+
+  local length = 75
+  local radius = radius*.92
+  local quality = math.max(8,round(180/math.deg((math.asin((length/(2*radius)))))))
+  local quality = 2*math.pi/quality
+  local points = {}
+  
+  for theta = 0, 2*math.pi+quality, quality do
+  
+    local c = WorldToScreen(D3DXVECTOR3(x+radius*math.cos(theta), y, z-radius*math.sin(theta)))
+    points[#points + 1] = D3DXVECTOR2(c.x, c.y)
+  end
+  
+  DrawLines2(points, 1, color or 4294967295)
+end
+
+function round(num)
+
+  if num >= 0 then
+    return math.floor(num+.5)
+  else
+    return math.ceil(num-.5)
   end
   
 end
