@@ -499,10 +499,10 @@ function Combo()
     
       if ComboR then
       
-        local QenemyDmg = ComboQ and Q.ready and ComboQ2+ComboR3 <= ManaPercent() and GetDmg("Q", enemy) or 0
-        local RenemyDmg = GetDmg("R", enemy)
+        local QRTargetDmg = ComboQ and Q.ready and ComboQ2+ComboR3 <= ManaPercent() and GetDmg("Q", RTarget) or 0
+        local RRTargetDmg = GetDmg("R", RTarget)
         
-        if  QenemyDmg+RenemyDmg >= enemy.health then
+        if  QRTargetDmg+RRTargetDmg >= enemy.health then
           CastR(RTarget, "ComboS")
         end
         
