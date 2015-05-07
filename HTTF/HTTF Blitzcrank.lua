@@ -1,4 +1,4 @@
-local Version = "1.212"
+local Version = "1.213"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -502,7 +502,7 @@ function Combo()
         local QRTargetDmg = ComboQ and Q.ready and ComboQ2+ComboR3 <= ManaPercent() and GetDmg("Q", RTarget) or 0
         local RRTargetDmg = GetDmg("R", RTarget)
         
-        if  QRTargetDmg+RRTargetDmg >= enemy.health then
+        if  QRTargetDmg+RRTargetDmg >= RTarget.health then
           CastR(RTarget, "ComboS")
         end
         
