@@ -1,4 +1,4 @@
-local Version = "1.211"
+local Version = "1.212"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -297,7 +297,7 @@ function BlitzcrankMenu()
     
   Menu:addSubMenu("Jungle Steal Settings", "JSteal")
     Menu.JSteal:addParam("On", "Jungle Steal", SCRIPT_PARAM_ONKEYDOWN, false, GetKey('X'))
-    Menu.JSteal:addParam("On2", "Jungle Steal Toggle", SCRIPT_PARAM_ONKEYTOGGLE, true, GetKey('N'))
+    Menu.JSteal:addParam("On2", "Jungle Steal Toggle", SCRIPT_PARAM_ONKEYTOGGLE, false, GetKey('N'))
       Menu.JSteal:addParam("Blank", "", SCRIPT_PARAM_INFO, "")
     Menu.JSteal:addParam("Q", "Use Q", SCRIPT_PARAM_ONOFF, true)
     if Smite ~= nil then
@@ -361,6 +361,7 @@ function BlitzcrankMenu()
   Menu.Harass.On = false
   Menu.LastHit.On = false
   Menu.JSteal.On = false
+  Menu.JSteal.On2 = false
   Menu.Flee.On = false
   
 end
