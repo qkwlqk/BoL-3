@@ -1,4 +1,4 @@
-local Version = "1.25"
+local Version = "1.251"
 
 if myHero.charName ~= "Orianna" then
   return
@@ -78,7 +78,7 @@ end
 function HTTF_Orianna:Variables()
 
   self.HPred = HPrediction()
-  
+	
   self.Ball = myHero
   self.IsRecall = false
   self.RebornLoaded, self.RevampedLoaded, self.MMALoaded, self.SxOrbLoaded, self.SOWLoaded = false, false, false, false, false
@@ -236,6 +236,10 @@ function HTTF_Orianna:RHit()
   
     for i, enemy in ipairs(self.EnemyHeroes) do
     
+      if enemy == nil then
+        return
+      end
+      
       local RPos, RHitChance, RNoH = self.HPred:GetPredict("R", enemy, self.Ball, true)
       
       if RNoH > 0 then
@@ -629,7 +633,7 @@ function HTTF_Orianna:Combo()
     
       for i, enemy in ipairs(self.EnemyHeroes) do
       
-        if ValidTarget(enemy, self.Q.range+self.Q.radius) then
+        if enemy ~= nil and ValidTarget(enemy, self.Q.range+self.Q.radius) then
           self:CastQ(enemy, "Combo")
         end
         
@@ -642,6 +646,10 @@ function HTTF_Orianna:Combo()
       
       for i, ally in ipairs(self.AllyHeroes) do
       
+        if ally == nil then
+          return
+        end
+        
         if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200 then
           Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200
           Target_E = ally
@@ -661,7 +669,7 @@ function HTTF_Orianna:Combo()
   
     for i, enemy in ipairs(self.EnemyHeroes) do
     
-      if ValidTarget(enemy, self.W.range+self.W.radius) then
+      if enemy ~= nil and ValidTarget(enemy, self.W.range+self.W.radius) then
         self:CastW(enemy, "Combo")
       end
       
@@ -681,7 +689,7 @@ function HTTF_Orianna:Combo()
     
       for i, enemy in ipairs(self.EnemyHeroes) do
       
-        if ValidTarget(enemy, self.E.range) then
+        if enemy ~= nil and ValidTarget(enemy, self.E.range) then
           self:CastE(enemy)
         end
         
@@ -697,9 +705,13 @@ function HTTF_Orianna:Combo()
     
     for i, ally in ipairs(self.AllyHeroes) do
     
+      if ally == nil then
+        return
+      end
+      
       for j, enemy in ipairs(self.EnemyHeroes) do
       
-        if ValidTarget(enemy, self.R.range+self.R.radius) then
+        if enemy ~= nil and ValidTarget(enemy, self.R.range+self.R.radius) then
         
           local RPos, RHitChance, RNoH = self.HPred:GetPredict("R", enemy, ally, true)
           
@@ -739,7 +751,7 @@ function HTTF_Orianna:Combo()
   
     for i, enemy in ipairs(self.EnemyHeroes) do
     
-      if ValidTarget(enemy, self.R.range+self.R.radius) then
+      if enemy ~= nil and ValidTarget(enemy, self.R.range+self.R.radius) then
       
         if ComboR then
         
@@ -912,7 +924,11 @@ function HTTF_Orianna:JFarm()
         
           for i, ally in ipairs(self.AllyHeroes) do
           
-            if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(LargeJunglemob, ally)/1200 then
+            if ally == nil then
+              return
+            end
+            
+            if ally ~= nil and Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(LargeJunglemob, ally)/1200 then
               Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(LargeJunglemob, ally)/1200
               Target_E = ally
             end
@@ -950,6 +966,10 @@ function HTTF_Orianna:JFarm()
         
           for i, ally in ipairs(self.AllyHeroes) do
           
+            if ally == nil then
+              return
+            end
+            
             if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(LargeJunglemob, ally)/1200 then
               Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(LargeJunglemob, ally)/1200
               Target_E = ally
@@ -1229,7 +1249,7 @@ function HTTF_Orianna:Harass()
     
       for i, enemy in ipairs(self.EnemyHeroes) do
       
-        if ValidTarget(enemy, self.Q.range+self.Q.radius) then
+        if enemy ~= nil and ValidTarget(enemy, self.Q.range+self.Q.radius) then
           self:CastQ(enemy, "Harass")
         end
         
@@ -1242,6 +1262,10 @@ function HTTF_Orianna:Harass()
       
       for i, ally in ipairs(self.AllyHeroes) do
       
+        if ally == nil then
+          return
+        end
+        
         if Time_QE > GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200 then
           Time_QE = GetDistance(ally, self.Ball)/1800+GetDistance(self.QTarget, ally)/1200
           Target_E = ally
@@ -1261,7 +1285,7 @@ function HTTF_Orianna:Harass()
   
     for i, enemy in ipairs(self.EnemyHeroes) do
     
-      if ValidTarget(enemy, self.W.range+self.W.radius) then
+      if enemy ~= nil and ValidTarget(enemy, self.W.range+self.W.radius) then
         self:CastW(enemy, "Harass")
       end
       
@@ -1281,7 +1305,7 @@ function HTTF_Orianna:Harass()
     
       for i, enemy in ipairs(self.EnemyHeroes) do
       
-        if ValidTarget(enemy, self.E.range) then
+        if enemy ~= nil and ValidTarget(enemy, self.E.range) then
           self:CastE(enemy)
         end
         
@@ -1524,6 +1548,10 @@ function HTTF_Orianna:KillSteal()
   
   for i, enemy in ipairs(self.EnemyHeroes) do
   
+    if enemy == nil then
+      return
+    end
+    
     local QenemyDmg = KillStealQ and GetDistance(enemy, myHero) < self.Q.range+self.Q.radius and self.Q.ready and .8*self:GetDmg("Q", enemy) or 0
     local WenemyDmg = KillStealW and self.W.ready and self:GetDmg("W", enemy) or 0
     local EenemyDmg = self.E.ready and self:GetDmg("E", enemy) or 0
@@ -1577,7 +1605,7 @@ function HTTF_Orianna:Auto()
   
     for i, enemy in ipairs(self.EnemyHeroes) do
     
-      if ValidTarget(enemy, self.W.range+self.W.radius) then
+      if enemy ~= nil and ValidTarget(enemy, self.W.range+self.W.radius) then
       
         local WPos, WHitChance, WNoH = self.HPred:GetPredict("W", enemy, self.Ball, true)
         
@@ -1596,7 +1624,7 @@ function HTTF_Orianna:Auto()
   
     for i, enemy in ipairs(self.EnemyHeroes) do
     
-      if ValidTarget(enemy, self.R.range+self.R.radius) then
+      if enemy ~= nil and ValidTarget(enemy, self.R.range+self.R.radius) then
       
         local RPos, RHitChance, RNoH = self.HPred:GetPredict("R", enemy, self.Ball, true)
         
@@ -2131,10 +2159,6 @@ function HTTF_Orianna:Draw()
     
     for i, enemy in ipairs(self.EnemyHeroes) do
     
-      if enemy == nil then
-        return
-      end
-      
       if enemy.hasMovePath and enemy.pathCount >= 2 then
       
         local IndexPath = enemy:GetPath(enemy.pathIndex)
