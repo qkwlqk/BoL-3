@@ -1,4 +1,4 @@
-local Version = "1.213"
+local Version = "1.214"
 local AutoUpdate = true
 
 if myHero.charName ~= "Blitzcrank" then
@@ -63,12 +63,8 @@ function Variables()
 
   HPred = HPrediction()
   
-  Spell_Q.collisionH['Blitzcrank'] = false
-  
-  Spell_R.delay['Blitzcrank'] = 0.25
-  Spell_R.radius['Blitzcrank'] = 600
-  Spell_R.range['Blitzcrank'] = 0
-  Spell_R.type['Blitzcrank'] = "PromptCircle"
+  HPred:AddSpell("Q", "Blitzcrank", {collisionH = false})
+  HPred:AddSpell("R", "Blitzcrank", {type = "PromptCircle", delay = .25, range = 0, radius = 600})
   
   QTarget = nil
   ETarget = nil
