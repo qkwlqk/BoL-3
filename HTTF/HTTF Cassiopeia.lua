@@ -1,4 +1,4 @@
-local Version = "1.014"
+local Version = "1.015"
 local AutoUpdate = true
 
 if myHero.charName ~= "Cassiopeia" then
@@ -631,7 +631,7 @@ function Farm()
       local QMinionDmg = GetDmg("Q", minion)
       local EMinionDmg = GetDmg("E", minion)
       
-      if not TargetPoisoned(minion) and (EMinionDmg <= minion.health or 2/3*QMinionDmg <= minion.health and QMinionDmg/3+EMinionDmg >= minion.health) and ValidTarget(minion, Q.range+Q.radius+100) then
+      if --[[not TargetPoisoned(minion) and ]](EMinionDmg <= minion.health or 2/3*QMinionDmg <= minion.health and QMinionDmg/3+EMinionDmg >= minion.health) and ValidTarget(minion, Q.range+Q.radius+100) then
         CastQ(minion)
       end
       
