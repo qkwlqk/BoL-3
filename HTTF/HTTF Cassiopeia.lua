@@ -1,4 +1,4 @@
-local Version = "1.013"
+local Version = "1.014"
 local AutoUpdate = true
 
 if myHero.charName ~= "Cassiopeia" then
@@ -567,7 +567,7 @@ function Combo()
       CastQ(QTarget, "Combo")
     end
     
-    if not TargetPoisoned(QTarget) and W.ready and ComboW and ComboW2 <= ManaPercent() and ValidTarget(QTarget, W.range+W.radius+100) then
+    if --[[not TargetPoisoned(QTarget) and ]]W.ready and ComboW and ComboW2 <= ManaPercent() and ValidTarget(QTarget, W.range+W.radius+100) then
       CastW(QTarget, "Combo")
     end
     
@@ -815,7 +815,7 @@ function Harass()
       CastQ(QTarget, "Harass")
     end
     
-    if not TargetPoisoned(QTarget) and W.ready and HarassW and HarassW2 <= ManaPercent() and ValidTarget(QTarget, W.range+W.radius+100) then
+    if --[[not TargetPoisoned(QTarget) and ]]W.ready and HarassW and HarassW2 <= ManaPercent() and ValidTarget(QTarget, W.range+W.radius+100) then
       CastW(QTarget, "Harass")
     end
     
